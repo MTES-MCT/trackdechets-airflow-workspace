@@ -3,3 +3,4 @@ __pycache__
 .vscode
 logs/dag_processor_manager/**
 logs/scheduler/**
+logs/dag_id=*/**
