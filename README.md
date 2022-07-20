@@ -1,6 +1,6 @@
 # DAGS Airflow utilisés pour Trackdéchets
 
-Ce repository contient les DAGs et plugins Airflow utilisés par [Trackdéchets](https://trackdechets.beta.gouv.fr/).
+Ce dépôt contient les DAGs et plugins Airflow utilisés par [Trackdéchets](https://trackdechets.beta.gouv.fr/). Il remplace en partie l'ancien dépôt [MTES-MCT/trackdechets-etl](https://github.com/MTES-MCT/trackdechets-etl) qui contenait à la fois les DAGs et la logique de déploiement d'Airflow (anciennement hébergé sur Scalingo).
 
 ## Développement en local
 
