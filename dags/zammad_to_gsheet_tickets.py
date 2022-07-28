@@ -185,7 +185,7 @@ Needed variables:
         i = 2
         while len(res_json) == 50:
             url_tickets = url_tickets_base + f"&page={i}"
-            logger.info("Getting new page tickets : %", i)
+            logger.info("Getting new page tickets : %s", i)
             res = requests.get(url_tickets, headers=headers)
             res_json = res.json()
 
