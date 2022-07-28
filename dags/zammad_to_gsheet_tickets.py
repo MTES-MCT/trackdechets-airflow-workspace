@@ -310,10 +310,10 @@ Needed variables:
         logger.info(
             "Transformed df shape: %s,min created_at: %s, max created_at: %s, first line created_at: %s, last line created_at: %s",
             df.shape,
-            df["Created at"].min(),
-            df["Created at"].max(),
-            df.iloc[0]["Created at"],
-            df.iloc[-1]["Created at"],
+            df["Created At"].min(),
+            df["Created At"].max(),
+            df.iloc[0]["Created At"],
+            df.iloc[-1]["Created At"],
         )
 
         df.to_pickle(df_filepath)
