@@ -93,7 +93,7 @@ ZAMMAD_FIELDS_TO_INCLUDE = [
 
 @dag(
     schedule_interval=timedelta(days=7),
-    start_date=pendulum.datetime(2022, 7, 25, 5, tz="Europe/Paris"),
+    start_date=pendulum.datetime(2022, 7, 25, 18, tz="Europe/Paris"),
     catchup=True,
 )
 def zammad_to_gsheet_tickets() -> str:
