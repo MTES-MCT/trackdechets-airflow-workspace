@@ -136,6 +136,7 @@ def _meltano_job_generator(schedules):
             catchup=False,
             default_args=args,
             schedule_interval=interval,
+            start_date=datetime(2022, 9, 1),
             max_active_runs=1,
         ) as dag:
             previous_task = None
