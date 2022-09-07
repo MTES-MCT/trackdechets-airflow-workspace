@@ -96,7 +96,7 @@ ZAMMAD_FIELDS_TO_INCLUDE = [
     start_date=pendulum.datetime(2022, 7, 25, 18, tz="Europe/Paris"),
     catchup=True,
 )
-def zammad_to_gsheet_tickets() -> str:
+def zammad_to_gsheet_tickets():
     """
 ## ETL DAG to export Zammad tickets to Google Sheet for reporting
 
