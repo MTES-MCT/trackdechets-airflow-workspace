@@ -128,8 +128,6 @@ def _meltano_job_generator(schedules):
         common_tags.append(f"job:{schedule['job']['name']}")
         interval = schedule["cron_interval"]
         args = DEFAULT_ARGS.copy()
-        args["start_date"] = datetime(2022, 9, 1)
-
         with DAG(
             base_id,
             tags=common_tags,

@@ -3,14 +3,13 @@ import shutil
 import tarfile
 import tempfile
 import urllib
-from datetime import timedelta
+from datetime import datetime
 from pathlib import Path
 
 import pandas as pd
 import pendulum
 from airflow.decorators import dag, task
-from airflow.models import Variable
-from airflow.models import Connection
+from airflow.models import Connection, Variable
 from sqlalchemy import create_engine
 
 logger = logging.getLogger()
@@ -148,17 +147,22 @@ def etl_icpe():
             airflow_con.get_uri().replace("postgres", "postgresql")
         )
 
+        inserted_at = datetime.utcnow()
+
+        logger.info("New insertion date : %s", inserted_at)
+
         tmp_dir = Path(tmp_dir)
         for config in configs:
             df_path = tmp_dir / config["filename"]
             df = pd.read_pickle(df_path)
+            df["inserted_at"] = inserted_at
             logger.info(
                 f"Loading {config['filename']} dataframe shape: {df.shape} into table {config['table_name']}"
             )
             df.to_sql(
                 name=config["table_name"],
                 con=sql_engine,
-                if_exists="replace",
+                if_exists="append",
                 index=False,
                 schema="raw_zone",
             )
