@@ -85,7 +85,7 @@ DF_READ_CONFIG = {
 
 @dag(
     start_date=pendulum.datetime(2022, 7, 1, 3, tz="Europe/Paris"),
-    schedule_interval="@monthly",
+    schedule_interval="0 0 * * 1",
     catchup=False,
 )
 def etl_icpe():
