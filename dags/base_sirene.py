@@ -37,7 +37,7 @@ def base_sirene_etl():
         sql_engine = create_engine(sql_uri)
         con = sql_engine.connect()
         table_creation_query = """
-CREATE TABLE IF NOT EXISTS raw_zone.stock_etablissement_sirene (
+CREATE TABLE IF NOT EXISTS raw_zone_insee.stock_etablissement (
 	siren varchar NULL,
 	nic varchar NULL,
 	siret varchar NULL,
@@ -87,13 +87,13 @@ CREATE TABLE IF NOT EXISTS raw_zone.stock_etablissement_sirene (
 	"nomenclatureActivitePrincipaleEtablissement" varchar NULL,
 	"caractereEmployeurEtablissement" varchar NULL
 );
-CREATE UNIQUE INDEX IF NOT EXISTS stock_etablissement_sirene_siret_idx ON raw_zone.stock_etablissement_sirene USING btree (siret);
-TRUNCATE TABLE raw_zone.stock_etablissement_sirene;
+CREATE UNIQUE INDEX IF NOT EXISTS stock_etablissement_siret_idx ON raw_zone_insee.stock_etablissement USING btree (siret);
+TRUNCATE TABLE raw_zone_insee.stock_etablissement;
 """
 
         con.execute(table_creation_query)
 
-        copy_command = f"psql {sql_uri} -c \"\\copy raw_zone.stock_etablissement_sirene from '{str(tmp_dir/'StockEtablissement_utf8.csv')}' WITH (FORMAT csv, HEADER true);\""
+        copy_command = f"psql {sql_uri} -c \"\\copy raw_zone_insee.stock_etablissement from '{str(tmp_dir/'StockEtablissement_utf8.csv')}' WITH (FORMAT csv, HEADER true);\""
         completed_process = subprocess.run(
             copy_command, check=True, capture_output=True, shell=True
         )

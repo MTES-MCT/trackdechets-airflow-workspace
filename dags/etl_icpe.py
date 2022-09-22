@@ -164,7 +164,7 @@ def etl_icpe():
                 con=sql_engine,
                 if_exists="append",
                 index=False,
-                schema="raw_zone",
+                schema="raw_zone_icpe",
             )
 
     @task
