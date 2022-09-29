@@ -120,7 +120,7 @@ def etl_icpe():
                                 f"{member.name} dataframe shape: {res[member.name].shape}"
                             )
 
-        tmp_dir = Path(tempfile.mkdtemp(prefix="ramping_up_follow_up"))
+        tmp_dir = Path(tempfile.mkdtemp(prefix="etl_icpe"))
 
         for filename, df in res.items():
             df.to_pickle(tmp_dir / f"{filename[:-4]}.pkl")
