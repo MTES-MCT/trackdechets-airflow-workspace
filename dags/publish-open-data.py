@@ -83,11 +83,6 @@ def publish_open_data_etl():
                 )
             },
         )
-        requests.put(
-            url=f"https://www.data.gouv.fr/api/1/datasets/{dataset_id}/resources/{resource_id}",
-            headers={"X-API-KEY": api_key},
-            json={"title": "Établissements inscrits sur Trackdéchets"},
-        )
 
         logger.info(f"Data.gouv response : {response.text}")
 
