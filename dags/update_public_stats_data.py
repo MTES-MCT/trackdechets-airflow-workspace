@@ -7,6 +7,8 @@ import requests
 from airflow.decorators import dag, task
 from airflow.models import Variable
 
+from mattermost import mm_failed_task
+
 logger = logging.getLogger()
 
 
@@ -14,6 +16,7 @@ logger = logging.getLogger()
     schedule_interval=timedelta(days=7),
     start_date=pendulum.datetime(2022, 7, 4, 7, 0, 0, tz="Europe/Paris"),
     catchup=False,
+    on_failure_callback=mm_failed_task,
 )
 def reload_public_stats_app():
     """

@@ -1,10 +1,12 @@
-from datetime import datetime
 import logging
+from datetime import datetime
 
 import pandas as pd
+import requests
 from airflow.decorators import dag, task
 from airflow.models import Connection, Variable
-import requests
+
+from mattermost import mm_failed_task
 
 logger = logging.getLogger()
 
@@ -14,6 +16,7 @@ logger = logging.getLogger()
     schedule_interval="@daily",
     user_defined_macros={},
     catchup=False,
+    on_failure_callback=mm_failed_task,
 )
 def publish_open_data_etl():
     """
@@ -91,8 +94,3 @@ def publish_open_data_etl():
 
 publish_open_data = publish_open_data_etl()
 
-if __name__ == "__main__":
-    from airflow.utils.state import State
-
-    dag.clear()
-    dag.run()

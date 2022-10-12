@@ -12,6 +12,8 @@ from airflow.decorators import dag, task
 from airflow.models import Connection, Variable
 from sqlalchemy import create_engine
 
+from mattermost import mm_failed_task
+
 logger = logging.getLogger()
 
 
@@ -87,6 +89,7 @@ DF_READ_CONFIG = {
     start_date=pendulum.datetime(2022, 7, 1, 3, tz="Europe/Paris"),
     schedule_interval="0 0 * * 1",
     catchup=False,
+    on_failure_callback=mm_failed_task,
 )
 def etl_icpe():
     @task

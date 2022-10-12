@@ -6,26 +6,17 @@
 # a new file under orchestrate/dags/ and Airflow
 # will pick it up automatically.
 
-import base64
 import json
 import logging
 from collections.abc import Iterable
+from datetime import datetime, timedelta
 
 import paramiko
 from airflow import DAG
-from airflow.decorators import dag as dag_callback
-from airflow.decorators import task
-from airflow.providers.ssh.hooks.ssh import SSHHook
-from airflow.providers.ssh.operators.ssh import SSHOperator
 from airflow.models import Connection
+from airflow.providers.ssh.operators.ssh import SSHOperator
 
-try:
-    from airflow.operators.bash_operator import BashOperator
-except ImportError:
-    from airflow.operators.bash import BashOperator
-
-from datetime import datetime, timedelta
-from pathlib import Path
+from mattermost import mm_failed_task
 
 logger = logging.getLogger()
 
@@ -88,6 +79,7 @@ def _meltano_elt_generator(schedules):
             default_args=args,
             schedule_interval=schedule["interval"],
             max_active_runs=1,
+            on_failure_callback=mm_failed_task,
         )
 
         elt = SSHOperator(

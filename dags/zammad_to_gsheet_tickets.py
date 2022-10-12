@@ -1,12 +1,12 @@
 import json
 import logging
-from pathlib import Path
 import shutil
 import tempfile
 from datetime import timedelta
+from pathlib import Path
 from typing import Dict, List, Union
-import numpy as np
 
+import numpy as np
 import pandas as pd
 import pendulum
 import pygsheets
@@ -14,6 +14,8 @@ import requests
 from airflow.decorators import dag, task
 from airflow.models import Connection, Variable
 from pendulum.datetime import DateTime
+
+from mattermost import mm_failed_task
 
 logger = logging.getLogger()
 
@@ -95,6 +97,7 @@ ZAMMAD_FIELDS_TO_INCLUDE = [
     schedule_interval=timedelta(days=7),
     start_date=pendulum.datetime(2022, 7, 25, 18, tz="Europe/Paris"),
     catchup=True,
+    on_failure_callback=mm_failed_task,
 )
 def zammad_to_gsheet_tickets():
     """

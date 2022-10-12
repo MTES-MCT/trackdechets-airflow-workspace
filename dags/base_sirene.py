@@ -10,8 +10,15 @@ from airflow.decorators import dag, task
 from airflow.models import Connection, Variable
 from sqlalchemy import create_engine
 
+from mattermost import mm_failed_task
 
-@dag(schedule_interval="@monthly", catchup=False, start_date=datetime(2022, 8, 31))
+
+@dag(
+    schedule_interval="@monthly",
+    catchup=False,
+    start_date=datetime(2022, 8, 31),
+    on_failure_callback=mm_failed_task,
+)
 def base_sirene_etl():
     """DAG qui met à jour la base SIRENE dans le Data Warehouse Trackdéchets
     """
