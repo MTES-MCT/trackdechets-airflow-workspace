@@ -150,6 +150,12 @@ def etl_icpe():
             airflow_con.get_uri().replace("postgres", "postgresql")
         )
 
+        for config in configs:
+            table_name = config["table_name"]
+            sql_engine.execute(
+                f"DROP TABLE IF EXISTS raw_zone_icpe.{table_name} CASCADE;"
+            )
+
         inserted_at = datetime.utcnow()
 
         logger.info("New insertion date : %s", inserted_at)
@@ -165,7 +171,7 @@ def etl_icpe():
             df.to_sql(
                 name=config["table_name"],
                 con=sql_engine,
-                if_exists="append",
+                if_exists="replace",
                 index=False,
                 schema="raw_zone_icpe",
             )
