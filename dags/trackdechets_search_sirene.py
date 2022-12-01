@@ -7,7 +7,10 @@ from datetime import datetime
 from airflow.decorators import dag, task
 from airflow.models import Variable, Connection
 
-logger = logging.basicConfig()
+
+logging.basicConfig()
+logger = logging.getLogger()
+
 environ = {
     "FORCE_LOGGER_CONSOLE": Variable.get("FORCE_LOGGER_CONSOLE"),
     "ELASTICSEARCH_URL": Connection.get_connection_from_secrets(
@@ -31,7 +34,8 @@ def trackdechets_search_sirene():
         tmp_dir = Path(tempfile.mkdtemp(prefix="trackdechets_search_sirene"))
         clone_command = "git clone https://github.com/MTES-MCT/trackdechets.git"
         completed_process = subprocess.run(
-            clone_command, check=True, capture_output=True, shell=True, cwd=tmp_dir
+            clone_command, check=True, capture_output=True, shell=True,
+            cwd=tmp_dir
         )
         logger.info(completed_process)
         return str(tmp_dir)
@@ -42,7 +46,7 @@ def trackdechets_search_sirene():
         npm install && npm run build
         """
         tmp_dir = Path(tmp_dir)
-        install_command = "npm i --quiet"
+        install_command = "npm install --quiet"
         completed_process = subprocess.run(
             install_command,
             check=True,
