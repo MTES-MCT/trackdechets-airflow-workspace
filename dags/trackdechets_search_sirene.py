@@ -1,12 +1,12 @@
 import logging
-from pathlib import Path
 import shutil
 import subprocess
-import sys
 import tempfile
 from datetime import datetime
+from pathlib import Path
+
 from airflow.decorators import dag, task
-from airflow.models import Variable, Connection
+from airflow.models import Connection, Variable
 from mattermost import mm_failed_task
 
 logging.basicConfig()
@@ -36,7 +36,12 @@ environ = {
 }
 
 
-@dag(schedule_interval=None, catchup=False, start_date=datetime.now(), on_failure_callback=mm_failed_task)
+@dag(
+    schedule_interval=None,
+    catchup=False,
+    start_date=datetime.now(),
+    on_failure_callback=mm_failed_task,
+)
 def trackdechets_search_sirene():
     """Dag qui tue"""
 
@@ -45,8 +50,7 @@ def trackdechets_search_sirene():
         tmp_dir = Path(tempfile.mkdtemp(prefix="trackdechets_search_sirene"))
         clone_command = "git clone https://github.com/MTES-MCT/trackdechets.git"
         completed_process = subprocess.run(
-            clone_command, check=True, capture_output=True, shell=True,
-            cwd=tmp_dir
+            clone_command, check=True, capture_output=True, shell=True, cwd=tmp_dir
         )
         logger.info(completed_process)
         return str(tmp_dir)
@@ -104,7 +108,7 @@ def trackdechets_search_sirene():
             line = process.stdout.readline()
             if not line:
                 break
-            logging.info(line.rstrip().decode('utf-8'))
+            logging.info(line.rstrip().decode("utf-8"))
 
         while process.wait():
             if process.returncode != 0:
