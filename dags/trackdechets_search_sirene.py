@@ -7,7 +7,7 @@ import tempfile
 from datetime import datetime
 from airflow.decorators import dag, task
 from airflow.models import Variable, Connection
-
+from mattermost import mm_failed_task
 
 logging.basicConfig()
 logger = logging.getLogger()
@@ -36,7 +36,7 @@ environ = {
 }
 
 
-@dag(schedule_interval=None, catchup=False, start_date=datetime.now())
+@dag(schedule_interval=None, catchup=False, start_date=datetime.now(), on_failure_callback=mm_failed_task)
 def trackdechets_search_sirene():
     """Dag qui tue"""
 
