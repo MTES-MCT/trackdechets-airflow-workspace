@@ -33,7 +33,7 @@ environ = {
     "DD_APP_NAME": Variable.get("DD_APP_NAME"),
     "DD_ENV": Variable.get("DD_ENV"),
     "NODE_ENV": Variable.get("NODE_ENV"),
-    "ELASTICSEARCH_CAPEM": Variable.get("ELASTICSEARCH_CAPEM")
+    "ELASTICSEARCH_CAPEM": Variable.get("ELASTICSEARCH_CAPEM"),
 }
 
 
@@ -44,7 +44,7 @@ environ = {
     on_failure_callback=mm_failed_task,
 )
 def trackdechets_search_sirene():
-    """Dag qui tue"""
+    """DAG permettant d'indexer la base SIRENE de l'INSEE dans ElasticSearch"""
 
     @task
     def git_clone_trackdechets() -> str:
@@ -55,7 +55,6 @@ def trackdechets_search_sirene():
         )
         logger.info(completed_process)
         return str(tmp_dir)
-
 
     @task
     def npm_install_build(tmp_dir) -> str:
@@ -93,6 +92,7 @@ def trackdechets_search_sirene():
 
     @task
     def download_es_ca_pem(tmp_dir) -> str:
+        """Download certificate needed for ElasticSearch connection."""
         tmp_dir = Path(tmp_dir)
         curl = f"curl -o es.cert {environ['ELASTICSEARCH_CAPEM']}"
         completed_process = subprocess.run(
@@ -100,7 +100,7 @@ def trackdechets_search_sirene():
             check=True,
             capture_output=True,
             shell=True,
-            cwd=tmp_dir / "trackdechets" / "search" / "dist" / "src" / "common"
+            cwd=tmp_dir / "trackdechets" / "search" / "dist" / "src" / "common",
         )
         logger.info(completed_process)
         return str(tmp_dir)
@@ -134,10 +134,13 @@ def trackdechets_search_sirene():
 
     @task
     def cleanup_tmp_files(tmp_dir: str):
+        """Clean DAG's artifacts"""
         shutil.rmtree(tmp_dir)
 
     tmp_dir = git_clone_trackdechets()
-    npm_install_build(tmp_dir) >> download_es_ca_pem(tmp_dir) >> npm_run_index(tmp_dir) >> cleanup_tmp_files(tmp_dir)
+    npm_install_build(tmp_dir) >> download_es_ca_pem(tmp_dir) >> npm_run_index(
+        tmp_dir
+    ) >> cleanup_tmp_files(tmp_dir)
 
 
 trackdechets_search_sirene_dag = trackdechets_search_sirene()
