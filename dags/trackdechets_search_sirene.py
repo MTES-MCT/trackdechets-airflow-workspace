@@ -132,7 +132,7 @@ def trackdechets_search_sirene():
 
         return str(tmp_dir)
 
-    @task
+    @task(trigger_rule="all_done")
     def cleanup_tmp_files(tmp_dir: str):
         """Clean DAG's artifacts"""
         shutil.rmtree(tmp_dir)
