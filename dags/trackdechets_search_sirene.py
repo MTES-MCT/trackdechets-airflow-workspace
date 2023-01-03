@@ -40,7 +40,7 @@ environ = {
 @dag(
     schedule_interval="0 3 3 * *",
     catchup=False,
-    start_date=datetime.now(),
+    start_date=datetime(2022, 12, 1),
     on_failure_callback=mm_failed_task,
 )
 def trackdechets_search_sirene():
