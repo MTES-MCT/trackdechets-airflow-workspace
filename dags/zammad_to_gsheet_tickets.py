@@ -17,6 +17,8 @@ from pendulum.datetime import DateTime
 
 from mattermost import mm_failed_task
 
+logging.basicConfig(level=logging.DEBUG)
+
 logger = logging.getLogger()
 
 ZAMMAD_TO_GSHEET_COLUMN_MAPPING = {
@@ -96,7 +98,7 @@ ZAMMAD_FIELDS_TO_INCLUDE = [
 @dag(
     schedule_interval=timedelta(days=7),
     start_date=pendulum.datetime(2022, 7, 25, 18, tz="Europe/Paris"),
-    catchup=True,
+    catchup=False,
     on_failure_callback=mm_failed_task,
 )
 def zammad_to_gsheet_tickets():
@@ -143,9 +145,11 @@ Needed variables:
                 break
 
         first_index_at_date = sheet.rows - k + 1
+        print(first_index_at_date)
+        logger.debug("frist index at date %s", first_index_at_date)
         first_ticket_number = int(sheet.get_value(f"E{first_index_at_date-1}")) + 1
         logger.info(
-            "Data will be appended starting at row %s with ticket number>=%s",
+            "Data will be appended starting at row %s (after ticket number %s)",
             first_index_at_date,
             first_ticket_number,
         )
