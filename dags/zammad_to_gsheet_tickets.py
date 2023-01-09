@@ -140,11 +140,16 @@ Needed variables:
 
         k = None
         for i, e in enumerate(reversed(days)):
+            if not e:
+                continue
+
             if e < start_date_str:
+                print("day", e)
                 k = i
                 break
 
         first_index_at_date = sheet.rows - k + 1
+        print("sheet rows", sheet.rows)
         print(first_index_at_date)
         logger.debug("frist index at date %s", first_index_at_date)
         first_ticket_number = int(sheet.get_value(f"E{first_index_at_date-1}")) + 1
