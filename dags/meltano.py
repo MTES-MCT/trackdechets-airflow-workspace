@@ -148,6 +148,7 @@ def _meltano_job_generator(schedules):
                     ssh_conn_id="meltano_ssh",
                     command=f"cd /project; meltano run {run_args}",
                     dag=dag,
+                    cmd_timeout=60 * 60 * 4,
                 )
                 if previous_task:
                     task.set_upstream(previous_task)
@@ -168,7 +169,7 @@ def create_dags():
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     client.connect(con.host, username=con.login, password=con.password)
     _, stdout, _ = client.exec_command(
-        "cd /project && meltano schedule list --format=json"
+        f"cd /project && meltano schedule list --format=json "
     )
     # logger.info(stdout.read())
     schedule_export = json.loads(stdout.read())
