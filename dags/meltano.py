@@ -15,7 +15,7 @@ import paramiko
 from airflow import DAG
 from airflow.models import Connection
 from airflow.providers.ssh.operators.ssh import SSHOperator
-
+from airflow.utils.trigger_rule import TriggerRule
 from mattermost import mm_failed_task
 
 logger = logging.getLogger()
@@ -143,12 +143,17 @@ def _meltano_job_generator(schedules):
                 else:
                     run_args = task
 
+                trigger_rule = TriggerRule.ALL_SUCCESS
+                if ("docs-generate" in run_args) or ("monitor-report" in run_args):
+                    trigger_rule = TriggerRule.ALL_DONE
+
                 task = SSHOperator(
                     task_id=task_id,
                     ssh_conn_id="meltano_ssh",
                     command=f"cd /project; meltano run {run_args}",
                     dag=dag,
                     cmd_timeout=60 * 60 * 4,
+                    trigger_rule=trigger_rule,
                 )
                 if previous_task:
                     task.set_upstream(previous_task)
