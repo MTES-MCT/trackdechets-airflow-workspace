@@ -128,7 +128,6 @@ def _meltano_job_generator(schedules):
             schedule_interval=interval,
             start_date=datetime(2022, 9, 1),
             max_active_runs=1,
-            on_failure_callback=mm_failed_task,
         ) as dag:
             previous_task = None
             for idx, task in enumerate(schedule["job"]["tasks"]):
@@ -154,6 +153,7 @@ def _meltano_job_generator(schedules):
                     dag=dag,
                     cmd_timeout=60 * 60 * 4,
                     trigger_rule=trigger_rule,
+                    on_failure_callback=mm_failed_task,
                 )
                 if previous_task:
                     task.set_upstream(previous_task)
