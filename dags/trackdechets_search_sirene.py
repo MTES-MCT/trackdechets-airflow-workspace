@@ -38,7 +38,7 @@ environ = {
 
 
 @dag(
-    schedule_interval="0 3 3 * *",
+    schedule_interval="0 22 2 * *",
     catchup=False,
     start_date=datetime(2022, 12, 1),
     on_failure_callback=mm_failed_task,
