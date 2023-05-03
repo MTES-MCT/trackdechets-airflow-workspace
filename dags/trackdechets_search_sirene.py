@@ -49,7 +49,7 @@ def trackdechets_search_sirene():
     @task
     def git_clone_trackdechets() -> str:
         tmp_dir = Path(tempfile.mkdtemp(prefix="trackdechets_search_sirene"))
-        clone_command = "git clone https://github.com/MTES-MCT/trackdechets.git"
+        clone_command = "git clone https://github.com/MTES-MCT/trackdechets-sirene-search.git"
         completed_process = subprocess.run(
             clone_command, check=True, capture_output=True, shell=True, cwd=tmp_dir
         )
