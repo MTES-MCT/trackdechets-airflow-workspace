@@ -34,6 +34,7 @@ environ = {
     "DD_ENV": Variable.get("DD_ENV"),
     "NODE_ENV": Variable.get("NODE_ENV"),
     "ELASTICSEARCH_CAPEM": Variable.get("ELASTICSEARCH_CAPEM"),
+    "INDEX_CHUNK_SIZE": Variable.get("INDEX_CHUNK_SIZE"),
 }
 
 trackdechets_sirene_search_git = "trackdechets-sirene-search"
