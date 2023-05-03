@@ -36,6 +36,7 @@ environ = {
     "ELASTICSEARCH_CAPEM": Variable.get("ELASTICSEARCH_CAPEM"),
 }
 
+trackdechets_sirene_search_git = "trackdechets-sirene-search"
 
 @dag(
     schedule_interval="0 22 2 * *",
@@ -49,7 +50,7 @@ def trackdechets_search_sirene():
     @task
     def git_clone_trackdechets() -> str:
         tmp_dir = Path(tempfile.mkdtemp(prefix="trackdechets_search_sirene"))
-        clone_command = "git clone https://github.com/MTES-MCT/trackdechets-sirene-search.git"
+        clone_command = f"git clone https://github.com/MTES-MCT/{trackdechets_sirene_search_git}.git"
         completed_process = subprocess.run(
             clone_command, check=True, capture_output=True, shell=True, cwd=tmp_dir
         )
@@ -68,7 +69,7 @@ def trackdechets_search_sirene():
             check=False,
             capture_output=True,
             shell=True,
-            cwd=tmp_dir / "trackdechets" / "search",
+            cwd=tmp_dir / trackdechets_sirene_search_git,
         )
         logger.info(completed_process.stderr)
         logger.info(completed_process.stdout)
@@ -81,7 +82,7 @@ def trackdechets_search_sirene():
             check=False,
             capture_output=True,
             shell=True,
-            cwd=tmp_dir / "trackdechets" / "search",
+            cwd=tmp_dir / trackdechets_sirene_search_git,
         )
         logger.info(completed_process.stderr)
         logger.info(completed_process.stdout)
@@ -100,7 +101,7 @@ def trackdechets_search_sirene():
             check=True,
             capture_output=True,
             shell=True,
-            cwd=tmp_dir / "trackdechets" / "search" / "dist" / "src" / "common",
+            cwd=tmp_dir / trackdechets_sirene_search_git / "dist" / "src" / "common",
         )
         logger.info(completed_process)
         return str(tmp_dir)
@@ -115,7 +116,7 @@ def trackdechets_search_sirene():
         process = subprocess.Popen(
             index_command,
             shell=True,
-            cwd=tmp_dir / "trackdechets" / "search",
+            cwd=tmp_dir / trackdechets_sirene_search_git,
             env=environ,
             stdout=subprocess.PIPE,
         )
