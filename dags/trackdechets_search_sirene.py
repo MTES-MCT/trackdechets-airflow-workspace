@@ -35,6 +35,7 @@ environ = {
     "NODE_ENV": Variable.get("NODE_ENV"),
     "ELASTICSEARCH_CAPEM": Variable.get("ELASTICSEARCH_CAPEM"),
     "INDEX_CHUNK_SIZE": Variable.get("INDEX_CHUNK_SIZE"),
+    "INDEX_SIRET_ONLY": Variable.get("INDEX_SIRET_ONLY"),
 }
 
 trackdechets_sirene_search_git = "trackdechets-sirene-search"
@@ -112,8 +113,13 @@ def trackdechets_search_sirene():
         """
         npm run index
         """
+        if environ['INDEX_SIRET_ONLY'] == "true":
+            command = "npm run index:siret"
+        else:
+            command = "npm run index"
+
         tmp_dir = Path(tmp_dir)
-        index_command = "npm run index"
+        index_command = command
         process = subprocess.Popen(
             index_command,
             shell=True,
