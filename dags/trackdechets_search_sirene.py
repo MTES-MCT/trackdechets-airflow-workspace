@@ -41,7 +41,7 @@ environ = {
 trackdechets_sirene_search_git = "trackdechets-sirene-search"
 
 @dag(
-    schedule_interval="0 22 2 * *",
+    schedule_interval="0 22 1 * *",
     catchup=False,
     start_date=datetime(2022, 12, 1),
     on_failure_callback=mm_failed_task,
