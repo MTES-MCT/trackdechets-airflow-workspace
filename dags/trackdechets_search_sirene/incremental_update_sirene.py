@@ -15,7 +15,11 @@ from airflow.decorators import dag, task
 from airflow.models import Connection, Variable
 from mattermost import mm_failed_task
 
-from utils import download_es_ca_pem, git_clone_trackdechets, npm_install_build
+from trackdechets_search_sirene.utils import (
+    download_es_ca_pem,
+    git_clone_trackdechets,
+    npm_install_build,
+)
 
 
 logging.basicConfig()
@@ -58,7 +62,7 @@ environ = {
     start_date=datetime.now(),
     on_failure_callback=mm_failed_task,
 )
-def trackdechets_update_daily_sirene():
+def incremental_update_search_sirene():
     """
     DAG permettant d'indexer les dernières modifications
     de SIRENE durant les 24h passées dans ElasticSearch
@@ -160,4 +164,4 @@ def trackdechets_update_daily_sirene():
     )
 
 
-trackdechets_search_sirene_dag = trackdechets_update_daily_sirene()
+trackdechets_search_sirene_dag = incremental_update_search_sirene()

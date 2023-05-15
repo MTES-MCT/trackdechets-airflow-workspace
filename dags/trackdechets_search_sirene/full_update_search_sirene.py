@@ -9,7 +9,11 @@ from airflow.decorators import dag, task
 from airflow.models import Connection, Variable
 from mattermost import mm_failed_task
 
-from utils import download_es_ca_pem, git_clone_trackdechets, npm_install_build
+from trackdechets_search_sirene.utils import (
+    download_es_ca_pem,
+    git_clone_trackdechets,
+    npm_install_build,
+)
 
 es_connection = Connection.get_connection_from_secrets(
     "trackdechets_search_sirene_elasticsearch_url"
@@ -49,7 +53,7 @@ TRACKDECHETS_SIRENE_SEARCH_GIT = Variable.get("TRACKDECHETS_SIRENE_SEARCH_GIT")
     start_date=datetime(2022, 12, 1),
     on_failure_callback=mm_failed_task,
 )
-def trackdechets_search_sirene():
+def full_update_search_sirene():
     """DAG permettant d'indexer la base SIRENE de l'INSEE dans ElasticSearch"""
 
     @task
@@ -119,4 +123,4 @@ def trackdechets_search_sirene():
     )
 
 
-trackdechets_search_sirene_dag = trackdechets_search_sirene()
+trackdechets_search_sirene_dag = full_update_search_sirene()
