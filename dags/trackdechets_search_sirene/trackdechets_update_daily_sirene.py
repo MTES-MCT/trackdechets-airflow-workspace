@@ -15,13 +15,15 @@ from airflow.decorators import dag, task
 from airflow.models import Connection, Variable
 from mattermost import mm_failed_task
 
-from trackdechets_search_sirene import git_clone_trackdechets
-from trackdechets_search_sirene import npm_install_build
-from trackdechets_search_sirene import download_es_ca_pem
-from trackdechets_search_sirene import trackdechets_sirene_search_git
+from utils import download_es_ca_pem, git_clone_trackdechets, npm_install_build
+
 
 logging.basicConfig()
 logger = logging.getLogger()
+
+
+# Constant pointing to the node git indexation repo
+TRACKDECHETS_SIRENE_SEARCH_GIT = Variable.get("TRACKDECHETS_SIRENE_SEARCH_GIT")
 
 es_connection = Connection.get_connection_from_secrets(
     "trackdechets_search_sirene_elasticsearch_url"
@@ -69,25 +71,27 @@ def trackdechets_update_daily_sirene():
         generate and cache an access token
         (only valid for a period of time)
         """
-        init_conn(insee_key=environ['INSEE_KEY'],
-                  insee_secret=environ['INSEE_SECRET'])
-        return Path(tempfile.mkdtemp(
-            prefix="trackdechets_update_daily_sirene"))
+        init_conn(insee_key=environ["INSEE_KEY"], insee_secret=environ["INSEE_SECRET"])
+
+        output_path = Path(tempfile.mkdtemp(prefix="trackdechets_update_daily_sirene"))
+        return str(output_path)
 
     @task
     def task_git_clone_trackdechets(tmp_dir) -> str:
-        return git_clone_trackdechets(tmp_dir)
+        return git_clone_trackdechets(tmp_dir, TRACKDECHETS_SIRENE_SEARCH_GIT)
 
     @task
     def task_npm_install_build(tmp_dir) -> str:
         """
         npm install && npm run build
         """
-        return npm_install_build(tmp_dir)
+        return npm_install_build(tmp_dir, TRACKDECHETS_SIRENE_SEARCH_GIT)
 
     @task
     def task_download_es_ca_pem(tmp_dir) -> str:
-        return download_es_ca_pem(tmp_dir)
+        return download_es_ca_pem(
+            tmp_dir, environ["ELASTICSEARCH_CAPEM"], TRACKDECHETS_SIRENE_SEARCH_GIT
+        )
 
     @task
     def task_query_and_index(tmp_dir) -> str:
@@ -103,10 +107,9 @@ def trackdechets_update_daily_sirene():
         try:
             df = search_sirene(
                 variable=["dateDernierTraitementEtablissement"],
-                pattern=[
-                    f"[{pattern}]"
-                ],
-                kind="siret")
+                pattern=[f"[{pattern}]"],
+                kind="siret",
+            )
             # print the items
             path_or_buf = tmp_dir / f"{pattern}.csv"
             df.to_csv(path_or_buf=path_or_buf)
@@ -115,7 +118,7 @@ def trackdechets_update_daily_sirene():
             process = subprocess.Popen(
                 index_command,
                 shell=True,
-                cwd=tmp_dir / trackdechets_sirene_search_git,
+                cwd=tmp_dir / TRACKDECHETS_SIRENE_SEARCH_GIT,
                 env=environ,
                 stdout=subprocess.PIPE,
             )
@@ -149,11 +152,12 @@ def trackdechets_update_daily_sirene():
     Dag workflow
     """
     tmp_dir = task_init_connection()
-    task_npm_install_build(tmp_dir) >> task_download_es_ca_pem(
-        tmp_dir
-    ) >> task_query_and_index(
-        tmp_dir
-    ) >> task_cleanup_tmp_files(tmp_dir)
+    (
+        task_npm_install_build(tmp_dir)
+        >> task_download_es_ca_pem(tmp_dir)
+        >> task_query_and_index(tmp_dir)
+        >> task_cleanup_tmp_files(tmp_dir)
+    )
 
 
 trackdechets_search_sirene_dag = trackdechets_update_daily_sirene()

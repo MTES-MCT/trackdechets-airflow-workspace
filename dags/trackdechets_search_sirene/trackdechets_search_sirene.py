@@ -9,8 +9,7 @@ from airflow.decorators import dag, task
 from airflow.models import Connection, Variable
 from mattermost import mm_failed_task
 
-logging.basicConfig()
-logger = logging.getLogger()
+from utils import download_es_ca_pem, git_clone_trackdechets, npm_install_build
 
 es_connection = Connection.get_connection_from_secrets(
     "trackdechets_search_sirene_elasticsearch_url"
@@ -40,69 +39,8 @@ environ = {
 }
 
 
-"""
-Constant pointing to the node git indexation repo
-"""
-trackdechets_sirene_search_git = "trackdechets-sirene-search"
-
-
-def download_es_ca_pem(tmp_dir) -> str:
-    """Download certificate needed for ElasticSearch connection."""
-    tmp_dir = Path(tmp_dir)
-    curl = f"curl -o es.cert {environ['ELASTICSEARCH_CAPEM']}"
-    completed_process = subprocess.run(
-        curl,
-        check=True,
-        capture_output=True,
-        shell=True,
-        cwd=tmp_dir / trackdechets_sirene_search_git / "dist" / "src"
-        / "common",
-    )
-    logger.info(completed_process)
-    return str(tmp_dir)
-
-
-def git_clone_trackdechets(tmp_dir) -> str:
-    clone_command = f"git clone https://github.com/MTES-MCT/{trackdechets_sirene_search_git}.git"
-    completed_process = subprocess.run(
-        clone_command, check=True, capture_output=True, shell=True, cwd=tmp_dir
-    )
-    logger.info(completed_process)
-    return str(tmp_dir)
-
-
-def npm_install_build(tmp_dir) -> str:
-    """
-    npm install && npm run build
-    """
-    tmp_dir = Path(tmp_dir)
-    install_command = "npm install --quiet"
-    completed_process = subprocess.run(
-        install_command,
-        check=False,
-        capture_output=True,
-        shell=True,
-        cwd=tmp_dir / trackdechets_sirene_search_git,
-    )
-    logger.info(completed_process.stderr)
-    logger.info(completed_process.stdout)
-    if completed_process.returncode != 0:
-        raise Exception(completed_process)
-
-    build_command = "npm run build"
-    completed_process = subprocess.run(
-        build_command,
-        check=False,
-        capture_output=True,
-        shell=True,
-        cwd=tmp_dir / trackdechets_sirene_search_git,
-    )
-    logger.info(completed_process.stderr)
-    logger.info(completed_process.stdout)
-    if completed_process.returncode != 0:
-        raise Exception(completed_process)
-
-    return str(tmp_dir)
+# Constant pointing to the node git indexation repo
+TRACKDECHETS_SIRENE_SEARCH_GIT = Variable.get("TRACKDECHETS_SIRENE_SEARCH_GIT")
 
 
 @dag(
@@ -117,25 +55,27 @@ def trackdechets_search_sirene():
     @task
     def task_git_clone_trackdechets() -> str:
         tmp_dir = Path(tempfile.mkdtemp(prefix="trackdechets_search_sirene"))
-        return git_clone_trackdechets(tmp_dir)
+        return git_clone_trackdechets(tmp_dir, TRACKDECHETS_SIRENE_SEARCH_GIT)
 
     @task
     def task_npm_install_build(tmp_dir) -> str:
         """
         npm install && npm run build
         """
-        return npm_install_build(tmp_dir)
+        return npm_install_build(tmp_dir, TRACKDECHETS_SIRENE_SEARCH_GIT)
 
     @task
     def task_download_es_ca_pem(tmp_dir) -> str:
-        return download_es_ca_pem(tmp_dir)
+        return download_es_ca_pem(
+            tmp_dir, environ["ELASTICSEARCH_CAPEM"], TRACKDECHETS_SIRENE_SEARCH_GIT
+        )
 
     @task
     def task_npm_run_index(tmp_dir) -> str:
         """
         npm run index
         """
-        if environ['INDEX_SIRET_ONLY'] == "true":
+        if environ["INDEX_SIRET_ONLY"] == "true":
             command = "npm run index:siret"
         else:
             command = "npm run index"
@@ -145,7 +85,7 @@ def trackdechets_search_sirene():
         process = subprocess.Popen(
             index_command,
             shell=True,
-            cwd=tmp_dir / trackdechets_sirene_search_git,
+            cwd=tmp_dir / TRACKDECHETS_SIRENE_SEARCH_GIT,
             env=environ,
             stdout=subprocess.PIPE,
         )
@@ -171,11 +111,12 @@ def trackdechets_search_sirene():
     Dag workflow
     """
     tmp_dir = task_git_clone_trackdechets()
-    task_npm_install_build(tmp_dir) >> task_download_es_ca_pem(
-        tmp_dir
-    ) >> task_npm_run_index(
-        tmp_dir
-    ) >> task_cleanup_tmp_files(tmp_dir)
+    (
+        task_npm_install_build(tmp_dir)
+        >> task_download_es_ca_pem(tmp_dir)
+        >> task_npm_run_index(tmp_dir)
+        >> task_cleanup_tmp_files(tmp_dir)
+    )
 
 
 trackdechets_search_sirene_dag = trackdechets_search_sirene()
