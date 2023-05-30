@@ -58,8 +58,8 @@ environ = {
 
 @dag(
     schedule_interval="0 4 * * *",
-    catchup=False,
-    start_date=datetime.now(),
+    catchup=True,
+    start_date=datetime(2023, 6, 1),
     on_failure_callback=mm_failed_task,
 )
 def incremental_update_search_sirene():
@@ -103,11 +103,10 @@ def incremental_update_search_sirene():
         query INSEE Sirene api the run index
         """
         tmp_dir = Path(tmp_dir)
-        # get current date and time
-        now = datetime.now()
-        # calculate 24 hours ago
-        twenty_four_hours_ago = now - timedelta(hours=24)
-        pattern = f"{twenty_four_hours_ago.strftime('%Y-%m-%d')}%20TO%20{now.strftime('%Y-%m-%d')}"
+
+        pattern = f"{{ data_interval_start }}%20TO%20{{ data_interval_end }}"
+        logger.info(f"INSEE API query data interval : {pattern}")
+
         try:
             df = search_sirene(
                 variable=["dateDernierTraitementEtablissement"],
