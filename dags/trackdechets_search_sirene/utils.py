@@ -17,7 +17,7 @@ def download_es_ca_pem(
         check=True,
         capture_output=True,
         shell=True,
-        cwd=tmp_dir / trackdechets_sirene_search_git / "dist" / "src" / "common",
+        cwd=tmp_dir / trackdechets_sirene_search_git / "dist" / "common",
     )
     logger.info(completed_process)
     return str(tmp_dir)
