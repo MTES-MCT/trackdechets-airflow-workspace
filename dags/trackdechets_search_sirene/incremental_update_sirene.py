@@ -156,7 +156,8 @@ def incremental_update_search_sirene():
     """
     tmp_dir = task_init_connection()
     (
-        task_npm_install_build(tmp_dir)
+        task_git_clone_trackdechets(tmp_dir)
+        >> task_npm_install_build(tmp_dir)
         >> task_download_es_ca_pem(tmp_dir)
         >> task_query_and_index(tmp_dir)
         >> task_cleanup_tmp_files(tmp_dir)
