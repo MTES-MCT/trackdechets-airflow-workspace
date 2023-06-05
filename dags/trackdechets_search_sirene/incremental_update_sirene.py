@@ -98,13 +98,15 @@ def incremental_update_search_sirene():
         )
 
     @task
-    def task_query_and_index(tmp_dir) -> str:
+    def task_query_and_index(
+        tmp_dir, data_interval_start=None, data_interval_end=None
+    ) -> str:
         """
         query INSEE Sirene api the run index
         """
         tmp_dir = Path(tmp_dir)
 
-        pattern = f"{{ data_interval_start }}%20TO%20{{ data_interval_end }}"
+        pattern = f"{data_interval_start.strftime('%Y-%m-%dT%H:%M')}%20TO%20{data_interval_end.strftime('%Y-%m-%dT%H:%M')}"
         logger.info(f"INSEE API query data interval : {pattern}")
 
         try:
@@ -112,6 +114,7 @@ def incremental_update_search_sirene():
                 variable=["dateDernierTraitementEtablissement"],
                 pattern=[f"[{pattern}]"],
                 kind="siret",
+                number=50_000,
             )
             # print the items
             path_or_buf = tmp_dir / f"{pattern}.csv"
