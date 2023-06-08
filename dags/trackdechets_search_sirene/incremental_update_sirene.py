@@ -50,6 +50,7 @@ environ = {
     "DD_API_KEY": Variable.get("DD_API_KEY"),
     "DD_APP_NAME": Variable.get("DD_APP_NAME"),
     "DD_ENV": Variable.get("DD_ENV"),
+    "NODE_ENV": Variable.get("NODE_ENV"),
     "INSEE_KEY": Variable.get("INSEE_KEY"),
     "INSEE_SECRET": Variable.get("INSEE_SECRET"),
     "ELASTICSEARCH_CAPEM": Variable.get("ELASTICSEARCH_CAPEM"),
