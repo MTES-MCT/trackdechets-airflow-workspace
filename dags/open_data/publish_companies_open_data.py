@@ -18,7 +18,7 @@ logger = logging.getLogger()
     catchup=False,
     on_failure_callback=mm_failed_task,
 )
-def publish_open_data_etl():
+def publish_companies_open_data():
     """
     DAG dedicated to the loading of a subset of company data to data.gouv.fr
     """
@@ -92,5 +92,4 @@ def publish_open_data_etl():
     extract_transform_and_load_company_data()
 
 
-publish_open_data = publish_open_data_etl()
-
+publish_companies_open_data_dag = publish_companies_open_data()

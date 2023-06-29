@@ -1,0 +1,137 @@
+import logging
+from datetime import datetime, timedelta
+
+import pandas as pd
+import requests
+from airflow.decorators import dag, task
+from airflow.models import Connection, Variable
+
+from mattermost import mm_failed_task
+
+logger = logging.getLogger(__name__)
+
+DATA_CONFIG = [
+    {
+        "filename": "bsdd_statistiques_hebdomadaires.csv",
+        "table_name": "refined_zone_stats_publiques.bsdd_statistiques_hebdomadaires",
+        "title": " Statistiques hebdomadaires des Bordereaux de Suivi de Déchets Dangereux",
+        "rid": "cfdfe544-7d8f-4229-83f0-3d4b5d3b5c0a",
+    },
+    {
+        "filename": "bsda_statistiques_hebdomadaires.csv",
+        "table_name": "refined_zone_stats_publiques.bsda_statistiques_hebdomadaires",
+        "title": "Statistiques hebdomadaires des Bordereaux de Suivi de Déchets Amiante",
+        "rid": "6eece3b5-5f1b-41ea-95ee-6eb31122c455",
+    },
+    {
+        "filename": "bsdasri_statistiques_hebdomadaires.csv",
+        "table_name": "refined_zone_stats_publiques.bsdasri_statistiques_hebdomadaires",
+        "title": "Statistiques hebdomadaires des Bordereaux de Suivi de Déchets d'Activités de Soins à Risques Infectieux",
+        "rid": "fbd8d5ee-5450-46b0-95eb-7c0de216feec",
+    },
+    {
+        "filename": "bsff_statistiques_hebdomadaires.csv",
+        "table_name": "refined_zone_stats_publiques.bsff_statistiques_hebdomadaires",
+        "title": "Statistiques hebdomadaires des Bordereaux de Suivi de Fluides Frigorigènes",
+        "rid": "74cdf13d-bf08-4b10-90ca-969fa51dd67f",
+    },
+    {
+        "filename": "bsvhu_statistiques_hebdomadaires.csv",
+        "table_name": "refined_zone_stats_publiques.bsvhu_statistiques_hebdomadaires",
+        "title": "Statistiques hebdomadaires des Bordereaux de Suivi de Véhicules Hors d'Usage",
+        "rid": "78c77679-1b39-4880-aea3-6de210505846",
+    },
+    {
+        "filename": "comptes_statistiques_hebdomadaires.csv",
+        "table_name": "refined_zone_stats_publiques.accounts_created_by_week",
+        "title": "Statistiques hebdomadaires des créations de compte sur l'application Trackdéchets",
+        "rid": "bd8950cd-7366-4f44-b3f4-580940337992",
+    },
+    {
+        "filename": "creations_bordereaux_par_an_et_type_bordereaux.csv",
+        "table_name": "refined_zone_stats_publiques.annual_number_of_bordereaux_created_by_bordereaux_type",
+        "title": "Statistiques annuelles de création de bordereaux par type de bordereaux",
+        "rid": "8c0d4554-98d8-4c03-a931-8e2baeb70f1f",
+    },
+    {
+        "filename": "quantite_dechets_par_an_et_type_bordereaux.csv",
+        "table_name": "refined_zone_stats_publiques.annual_quantity_processed_by_bordereaux_type",
+        "title": "Statistiques annuelles de la quantité de déchets traités par type de bordereaux",
+        "rid": "e2a2bd3f-1c80-48e4-9095-947ae885e95e",
+    },
+    {
+        "filename": "quantite_dechets_par_an_et_code_operation.csv",
+        "table_name": "refined_zone_stats_publiques.annual_quantity_processed_by_processing_operation",
+        "title": "Statistiques annuelles de la quantité de déchets traités par code d'opération de traitement",
+        "rid": "3203b301-f210-4576-8ff0-1d29557a15e5",
+    },
+    {
+        "filename": "quantite_dechets_par_an_et_type_traitement.csv",
+        "table_name": "refined_zone_stats_publiques.annual_quantity_processed_by_processing_type",
+        "title": "Statistiques annuelles de la quantité de déchets traités par type d'opération de traitement",
+        "rid": "ab7b6dc6-31fc-4780-bdd3-d91c81643a2e",
+    },
+]
+
+
+@dag(
+    start_date=datetime(2023, 6, 26, 12),
+    schedule_interval=timedelta(days=7),
+    catchup=False,
+    on_failure_callback=mm_failed_task,
+)
+def publish_stats_publiques_open_data():
+    """
+    DAG qui sert à publier chaque semaine les nouveaux fichiers relatifs aux stats publiques sur data.gouv.fr
+    """
+
+    @task()
+    def extract_and_load_stats_publiques_data():
+        from sqlalchemy import create_engine
+
+        airflow_con = Connection.get_connection_from_secrets("td_datawarehouse")
+
+        sql_engine = create_engine(
+            airflow_con.get_uri().replace("postgres", "postgresql")
+        )
+
+        datagouv_api_key = Variable.get("DATAGOUVFR_API_KEY")
+        datagouv_dataset_id = Variable.get("DATAGOUV_STATS_PUBLIQUES_DATASET_ID")
+
+        for config in reversed(DATA_CONFIG):
+            table_name = config["table_name"]
+            ressource_id = config["rid"]
+            filename = config["filename"]
+            title = config["title"]
+
+            sql = f"SELECT * from {table_name} WHERE semaine>='2022-01-01'"
+            if "annual" in table_name:
+                sql = f"SELECT * from {table_name} WHERE annee>=2022"
+
+            df = pd.read_sql_query(
+                sql=sql,
+                con=sql_engine,
+            )
+
+            logger.info("Uploading file : %s", filename)
+            resp = requests.post(
+                url=f"https://www.data.gouv.fr/api/1/datasets/{datagouv_dataset_id}/resources/{ressource_id}/upload/",
+                headers={"X-API-KEY": datagouv_api_key},
+                files={
+                    "file": (
+                        filename,
+                        df.to_csv(index=False),
+                    )
+                },
+            )
+            requests.put(
+                url=f"https://www.data.gouv.fr/api/1/datasets/{datagouv_dataset_id}/resources/{ressource_id}/",
+                headers={"X-API-KEY": datagouv_api_key},
+                json={"title": title},
+            )
+            logger.info("Received response from data.gouv.fr API : %s", resp.json())
+
+    extract_and_load_stats_publiques_data()
+
+
+publish_stats_publiques_open_data_dag = publish_stats_publiques_open_data()
