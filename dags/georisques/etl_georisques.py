@@ -231,7 +231,7 @@ def extract_transform_and_load_georisques():
             """
         )
 
-        logger.info("Finished upsert of data with result %s", q_res.fetchall())
+        logger.info("Finished upsert of data")
 
     @task()
     def transform_and_load_rubriques_data(data: list[str]):
