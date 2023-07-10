@@ -39,7 +39,7 @@ def extract_transform_and_load_georisques():
         return date_max
 
     @task()
-    def extract_data_from_georisques_api(date_modification: str) -> list[str]:
+    def extract_data_from_georisques_api(date_modification: str) -> list[dict]:
         # Première requête pour récupérer le nombre de pages
         base_url = "https://www.georisques.gouv.fr/api/v1/installations_classees"
         date_maj = "2023-07-03"
@@ -62,7 +62,7 @@ def extract_transform_and_load_georisques():
         return data
 
     @task()
-    def transform_and_load_installations_data(data: list[str]):
+    def transform_and_load_installations_data(data: list[dict]):
         airflow_con = Connection.get_connection_from_secrets("td_datawarehouse")
         sql_engine = create_engine(
             airflow_con.get_uri().replace("postgres", "postgresql")
@@ -234,7 +234,12 @@ def extract_transform_and_load_georisques():
         logger.info("Finished upsert of data")
 
     @task()
-    def transform_and_load_rubriques_data(data: list[str]):
+    def transform_and_load_rubriques_data(data: list[dict]):
+        airflow_con = Connection.get_connection_from_secrets("td_datawarehouse")
+        sql_engine = create_engine(
+            airflow_con.get_uri().replace("postgres", "postgresql")
+        )
+
         rubriques_data = [
             {"code_aiot": e["codeAIOT"], **rubrique}
             for e in data
@@ -271,6 +276,11 @@ def extract_transform_and_load_georisques():
 
     @task()
     def clean_artifacts():
+        airflow_con = Connection.get_connection_from_secrets("td_datawarehouse")
+        sql_engine = create_engine(
+            airflow_con.get_uri().replace("postgres", "postgresql")
+        )
+
         sql_engine.execute("DROP TABLE raw_zone_icpe.installations_temp")
 
     date = get_last_update_date()
