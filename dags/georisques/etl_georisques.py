@@ -23,12 +23,13 @@ def extract_transform_and_load_georisques():
     DAG dedicated to the loading of a subset of company data to data.gouv.fr
     """
 
-    airflow_con = Connection.get_connection_from_secrets("td_datawarehouse")
-
-    sql_engine = create_engine(airflow_con.get_uri().replace("postgres", "postgresql"))
-
     @task()
     def get_last_update_date() -> str:
+        airflow_con = Connection.get_connection_from_secrets("td_datawarehouse")
+        sql_engine = create_engine(
+            airflow_con.get_uri().replace("postgres", "postgresql")
+        )
+
         res = sql_engine.execute(
             "SELECT max(date_modification) FROM raw_zone_icpe.installations"
         )
@@ -62,6 +63,11 @@ def extract_transform_and_load_georisques():
 
     @task()
     def transform_and_load_installations_data(data: list[str]):
+        airflow_con = Connection.get_connection_from_secrets("td_datawarehouse")
+        sql_engine = create_engine(
+            airflow_con.get_uri().replace("postgres", "postgresql")
+        )
+
         df: pd.DataFrame = pd.DataFrame.from_dict(data)
 
         col_mapping = {
