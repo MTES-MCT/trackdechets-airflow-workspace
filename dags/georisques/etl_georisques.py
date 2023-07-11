@@ -33,7 +33,7 @@ def extract_transform_and_load_georisques():
         res = sql_engine.execute(
             "SELECT max(date_modification) FROM raw_zone_icpe.installations"
         )
-        date_max = res.first()[0][:10]
+        date_max: str = res.first()[0][:10]
         logger.info("Least recent date in the datawarehouse is %s", date_max)
 
         return date_max
@@ -42,7 +42,7 @@ def extract_transform_and_load_georisques():
     def extract_data_from_georisques_api(date_modification: str) -> list[dict]:
         # Première requête pour récupérer le nombre de pages
         base_url = "https://www.georisques.gouv.fr/api/v1/installations_classees"
-        date_maj = "2023-07-03"
+        date_maj = date_modification
         res = requests.get(f"{base_url}?&page_size=100&dateMaj={date_maj}&page=1")
 
         res_json = res.json()
