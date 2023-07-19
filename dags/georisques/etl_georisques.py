@@ -1,13 +1,13 @@
 import logging
 from datetime import datetime
 
-from sqlalchemy import create_engine
 import pandas as pd
 import requests
-from airflow.decorators import dag, task
-from airflow.models import Connection, Variable
-
 from mattermost import mm_failed_task
+from sqlalchemy import create_engine
+
+from airflow.decorators import dag, task
+from airflow.models import Connection
 
 logger = logging.getLogger()
 
@@ -20,7 +20,7 @@ logger = logging.getLogger()
 )
 def extract_transform_and_load_georisques():
     """
-    DAG dedicated to the loading of a subset of company data to data.gouv.fr
+    DAG dedicated to incrementally extract data from Géorisques API and load it to our Datawarehouse.
     """
 
     @task()
