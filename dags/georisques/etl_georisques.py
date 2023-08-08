@@ -34,7 +34,7 @@ def extract_transform_and_load_georisques():
             "SELECT max(date_modification) FROM raw_zone_icpe.installations"
         )
         date_max: str = res.first()[0][:10]
-        logger.info("Least recent date in the datawarehouse is %s", date_max)
+        logger.info("Most recent date in the datawarehouse is %s", date_max)
 
         return date_max
 
@@ -43,7 +43,7 @@ def extract_transform_and_load_georisques():
         # Première requête pour récupérer le nombre de pages
         base_url = "https://www.georisques.gouv.fr/api/v1/installations_classees"
         date_maj = date_modification
-        res = requests.get(f"{base_url}?&page_size=100&dateMaj={date_maj}&page=1")
+        res = requests.get(f"{base_url}?page_size=100&dateMaj={date_maj}&page=1")
 
         res_json = res.json()
 
@@ -59,6 +59,10 @@ def extract_transform_and_load_georisques():
 
         logger.info("Retrieved data, len of data is %s", len(data))
 
+        return data
+
+    @task.short_circuit()
+    def is_empty(data):
         return data
 
     @task()
@@ -96,9 +100,14 @@ def extract_transform_and_load_georisques():
             "longitude": "longitude",
             "latitude": "latitude",
             "date_maj": "date_modification",
+            "regime": "regime",
         }
 
+        df_all_columns = pd.DataFrame(columns=col_mapping.values())
+
         df = df.rename(columns=col_mapping)
+
+        df = pd.concat([df_all_columns, df])
 
         logger.info("Beginning upsert of installations data")
 
@@ -285,8 +294,16 @@ def extract_transform_and_load_georisques():
 
     date = get_last_update_date()
     georisque_data = extract_data_from_georisques_api(date)
-    transform_and_load_installations_data(georisque_data)
-    transform_and_load_rubriques_data(georisque_data) >> clean_artifacts()
+
+    data = is_empty(georisque_data)
+
+    [
+        transform_and_load_installations_data(data),
+        transform_and_load_rubriques_data(data),
+    ] >> clean_artifacts()
 
 
 extract_transform_and_load_georisques_dag = extract_transform_and_load_georisques()
+
+if __name__ == "__main__":
+    extract_transform_and_load_georisques_dag.test()
