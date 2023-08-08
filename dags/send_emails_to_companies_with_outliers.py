@@ -106,7 +106,7 @@ async def send_emails(df: pd.DataFrame):
 
 @dag(
     start_date=datetime(2023, 6, 1),
-    schedule_interval="0 9 2 * *",
+    schedule_interval=None,
     catchup=False,
     on_failure_callback=mm_failed_task,
 )
