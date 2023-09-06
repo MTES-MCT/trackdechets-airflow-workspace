@@ -45,7 +45,11 @@ async def send_email_async(
     session: aiohttp.ClientSession, url: str, body: dict
 ) -> dict:
     async with session.post(url, json=body) as response:
-        logger.info("Sending e-mail to : % s", body["to"][0]["email"])
+        logger.info(
+            "Sending e-mail(s) to %s, email adresses : % s",
+            body["params"]["nom_societe"],
+            body["to"],
+        )
         return await response.json()
 
 
@@ -63,15 +67,16 @@ async def send_emails(df: pd.DataFrame):
         headers=headers, connector=aiohttp.TCPConnector(limit_per_host=10)
     ) as session:
         for row in df.itertuples(index=False):
-            email = row.user_email
+            emails = row.user_emails
+
             nom_etablissement = row.company_name
+            siret = row.siret
+            num_bordereaux = len(row.bordereaux)
 
             bordereaux_csv = bordereaux_list_to_base64_csv(row.bordereaux)
 
             body = {
-                "to": [
-                    {"email": email},
-                ],
+                "to": [{"email": email} for email in emails],
                 "templateId": 315,
                 "replyTo": {
                     "email": "contact@mail.trackdechets.beta.gouv.fr",
@@ -79,6 +84,8 @@ async def send_emails(df: pd.DataFrame):
                 },
                 "params": {
                     "nom_societe": nom_etablissement,
+                    "siret": siret,
+                    "num_bordereaux": num_bordereaux,
                 },
                 "attachment": [
                     {
@@ -93,7 +100,7 @@ async def send_emails(df: pd.DataFrame):
             except Exception as e:
                 logger.error(
                     "Error sending the message to e-mail : %s with exception : %s",
-                    email,
+                    emails,
                     e,
                 )
 
@@ -124,7 +131,7 @@ def send_emails_to_companies_with_outliers():
         with sql_engine.connect() as connection:
             df = pd.read_sql_table(
                 con=connection,
-                table_name="bordereaux_valeurs_aberrantes",
+                table_name="etablisements_avec_bordereaux_valeurs_aberrantes",
                 schema="refined_zone_analytics",
             )
 
@@ -136,7 +143,8 @@ def send_emails_to_companies_with_outliers():
 
     @task()
     def send_emails_with_brevo(df: str):
-        df = pd.read_json(df)
+        df: pd.DataFrame = pd.read_json(df, dtype={"siret": str})
+
         loop = asyncio.get_event_loop()
         loop.run_until_complete(send_emails(df))
 
