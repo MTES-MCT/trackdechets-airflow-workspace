@@ -54,22 +54,10 @@ DATA_CONFIG = [
         "rid": "8c0d4554-98d8-4c03-a931-8e2baeb70f1f",
     },
     {
-        "filename": "quantite_dechets_par_an_et_type_bordereaux.csv",
-        "table_name": "refined_zone_stats_publiques.annual_quantity_processed_by_bordereaux_type",
-        "title": "Statistiques annuelles de la quantité de déchets traités par type de bordereaux",
-        "rid": "e2a2bd3f-1c80-48e4-9095-947ae885e95e",
-    },
-    {
-        "filename": "quantite_dechets_par_an_et_code_operation.csv",
-        "table_name": "refined_zone_stats_publiques.annual_quantity_processed_by_processing_operation",
-        "title": "Statistiques annuelles de la quantité de déchets traités par code d'opération de traitement",
-        "rid": "3203b301-f210-4576-8ff0-1d29557a15e5",
-    },
-    {
-        "filename": "quantite_dechets_par_an_et_type_traitement.csv",
-        "table_name": "refined_zone_stats_publiques.annual_quantity_processed_by_processing_type",
-        "title": "Statistiques annuelles de la quantité de déchets traités par type d'opération de traitement",
-        "rid": "ab7b6dc6-31fc-4780-bdd3-d91c81643a2e",
+        "filename": "quantite_dechets_traites_statistiques_annuelles.csv",
+        "table_name": "refined_zone_stats_publiques.annual_quantity_processed_stats",
+        "title": "Statistiques annuelles de la quantité de déchets traités par type de bordereaux, opération de traitement et type d'opération",
+        "rid": "ad5280cd-d8d8-4bd0-8677-f9c926e8fddd",
     },
 ]
 
