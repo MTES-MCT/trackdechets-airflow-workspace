@@ -55,7 +55,7 @@ DATA_CONFIG = [
     },
     {
         "filename": "quantite_dechets_traites_statistiques_annuelles.csv",
-        "table_name": "refined_zone_stats_publiques.annual_quantity_processed_stats",
+        "table_name": "refined_zone_stats_publiques.annual_waste_processed_stats",
         "title": "Statistiques annuelles de la quantité de déchets traités par type de bordereaux, opération de traitement et type d'opération",
         "rid": "ad5280cd-d8d8-4bd0-8677-f9c926e8fddd",
     },
