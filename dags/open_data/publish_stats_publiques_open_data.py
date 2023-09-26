@@ -54,9 +54,9 @@ DATA_CONFIG = [
         "rid": "8c0d4554-98d8-4c03-a931-8e2baeb70f1f",
     },
     {
-        "filename": "quantite_dechets_traites_statistiques_annuelles.csv",
-        "table_name": "refined_zone_stats_publiques.annual_waste_processed_stats",
-        "title": "Statistiques annuelles de la quantité de déchets traités par type de bordereaux, opération de traitement et type d'opération",
+        "filename": "quantite_dechets_traites_statistiques_hebdomadaires.csv",
+        "table_name": "refined_zone_stats_publiques.weekly_waste_processed_stats",
+        "title": "Statistiques hebdomadaires de la quantité de déchets traités par type de bordereaux, opération de traitement et type d'opération",
         "rid": "ad5280cd-d8d8-4bd0-8677-f9c926e8fddd",
     },
 ]
