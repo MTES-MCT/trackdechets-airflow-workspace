@@ -45,19 +45,19 @@ DATA_CONFIG = [
         "filename": "comptes_statistiques_hebdomadaires.csv",
         "table_name": "refined_zone_stats_publiques.accounts_created_by_week",
         "title": "Statistiques hebdomadaires des créations de compte sur l'application Trackdéchets",
-        "rid": "bd8950cd-7366-4f44-b3f4-580940337992",
-    },
-    {
-        "filename": "creations_bordereaux_par_an_et_type_bordereaux.csv",
-        "table_name": "refined_zone_stats_publiques.annual_number_of_bordereaux_created_by_bordereaux_type",
-        "title": "Statistiques annuelles de création de bordereaux par type de bordereaux",
-        "rid": "8c0d4554-98d8-4c03-a931-8e2baeb70f1f",
+        "rid": "0fdfa874-8093-471a-8ae2-8f9d9398364c",
     },
     {
         "filename": "quantite_dechets_traites_statistiques_hebdomadaires.csv",
         "table_name": "refined_zone_stats_publiques.weekly_waste_processed_stats",
         "title": "Statistiques hebdomadaires de la quantité de déchets traités par type de bordereaux, opération de traitement et type d'opération",
         "rid": "ad5280cd-d8d8-4bd0-8677-f9c926e8fddd",
+    },
+    {
+        "filename": "creations_bordereaux_par_an_et_type_bordereaux.csv",
+        "table_name": "refined_zone_stats_publiques.annual_number_of_bordereaux_created_by_bordereaux_type",
+        "title": "Statistiques annuelles de création de bordereaux par type de bordereaux",
+        "rid": "8c0d4554-98d8-4c03-a931-8e2baeb70f1f",
     },
 ]
 
