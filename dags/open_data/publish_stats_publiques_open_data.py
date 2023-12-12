@@ -1,4 +1,3 @@
-import logging
 from datetime import datetime, timedelta
 
 import pandas as pd
@@ -7,6 +6,7 @@ from airflow.decorators import dag, task
 from airflow.models import Connection, Variable
 
 from mattermost import mm_failed_task
+from logger import logging
 
 logger = logging.getLogger(__name__)
 

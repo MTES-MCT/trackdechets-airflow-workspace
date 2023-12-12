@@ -1,9 +1,8 @@
 import subprocess
 from pathlib import Path
-import logging
+from logger import logging
 
-logging.basicConfig()
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 
 def download_es_ca_pem(

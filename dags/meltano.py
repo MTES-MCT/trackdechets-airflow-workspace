@@ -7,7 +7,6 @@
 # will pick it up automatically.
 
 import json
-import logging
 from collections.abc import Iterable
 from datetime import datetime, timedelta
 
@@ -17,8 +16,9 @@ from airflow.models import Connection
 from airflow.providers.ssh.operators.ssh import SSHOperator
 from airflow.utils.trigger_rule import TriggerRule
 from mattermost import mm_failed_task
+from logger import logging
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 DEFAULT_ARGS = {
     "owner": "airflow",

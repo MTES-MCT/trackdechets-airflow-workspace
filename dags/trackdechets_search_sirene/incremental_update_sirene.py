@@ -14,6 +14,7 @@ from requests.exceptions import RequestException
 from airflow.decorators import dag, task
 from airflow.models import Connection, Variable
 from mattermost import mm_failed_task
+from logger import logging
 
 from trackdechets_search_sirene.utils import (
     download_es_ca_pem,
@@ -21,10 +22,7 @@ from trackdechets_search_sirene.utils import (
     npm_install_build,
 )
 
-
-logging.basicConfig()
-logger = logging.getLogger()
-
+logger = logging.getLogger(__name__)
 
 # Constant pointing to the node git indexation repo
 TRACKDECHETS_SIRENE_SEARCH_GIT = Variable.get("TRACKDECHETS_SIRENE_SEARCH_GIT")
@@ -134,7 +132,7 @@ def incremental_update_search_sirene():
                 line = process.stdout.readline()
                 if not line:
                     break
-                logging.info(line.rstrip().decode("utf-8"))
+                logger.debug(line.rstrip().decode("utf-8"))
 
             while process.wait():
                 if process.returncode != 0:

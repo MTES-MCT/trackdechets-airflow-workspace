@@ -1,5 +1,4 @@
 import json
-import logging
 import shutil
 import tempfile
 from datetime import timedelta
@@ -16,10 +15,9 @@ from airflow.models import Connection, Variable
 from pendulum.datetime import DateTime
 
 from mattermost import mm_failed_task
+from logger import logging
 
-logging.basicConfig(level=logging.DEBUG)
-
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 ZAMMAD_TO_GSHEET_COLUMN_MAPPING = {
     "number": "Ticket number",
@@ -103,17 +101,17 @@ ZAMMAD_FIELDS_TO_INCLUDE = [
 )
 def zammad_to_gsheet_tickets():
     """
-## ETL DAG to export Zammad tickets to Google Sheet for reporting
+    ## ETL DAG to export Zammad tickets to Google Sheet for reporting
 
-Needed connection:
+    Needed connection:
 
-- **airflow_service_account** : Google cloud platform service account key file path
-with right to edit the Zammad reporting spreadsheet.
+    - **airflow_service_account** : Google cloud platform service account key file path
+    with right to edit the Zammad reporting spreadsheet.
 
-Needed variables:
+    Needed variables:
 
-- **ZAMMAD_REPORTING_SPREADSHEET_URL**: URL of the Google Spreadsheet where to load transformed data;
-- **ZAMMAD_API_TOKEN**: API Token with the permission to query /tickets and /tags endpoints.
+    - **ZAMMAD_REPORTING_SPREADSHEET_URL**: URL of the Google Spreadsheet where to load transformed data;
+    - **ZAMMAD_API_TOKEN**: API Token with the permission to query /tickets and /tags endpoints.
     """
 
     @task
@@ -333,7 +331,7 @@ Needed variables:
     @task
     def load_zammad_tickets_to_gsheet(tmp_dir: str, first_index_gsheet: int):
         """
-        Load the dataframe to the Google Spreadsheet, inserting rows beginning at index first_index_gsheet. 
+        Load the dataframe to the Google Spreadsheet, inserting rows beginning at index first_index_gsheet.
         """
 
         tmp_dir = Path(tmp_dir)
@@ -366,12 +364,10 @@ Needed variables:
 
     gsheet_infos = get_gsheet_start_infos()
     tmp_dir = get_zammad_tickets(gsheet_infos["first_ticket_number"])
-    transform_zammad_tickets(
-        tmp_dir, gsheet_infos["first_index_gsheet"]
-    ) >> load_zammad_tickets_to_gsheet(
-        tmp_dir, gsheet_infos["first_index_gsheet"]
-    ) >> cleanup_tmp_files(
-        tmp_dir
+    (
+        transform_zammad_tickets(tmp_dir, gsheet_infos["first_index_gsheet"])
+        >> load_zammad_tickets_to_gsheet(tmp_dir, gsheet_infos["first_index_gsheet"])
+        >> cleanup_tmp_files(tmp_dir)
     )
 
 

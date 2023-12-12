@@ -1,4 +1,3 @@
-import logging
 import shutil
 import subprocess
 import tempfile
@@ -8,6 +7,7 @@ from pathlib import Path
 from airflow.decorators import dag, task
 from airflow.models import Connection, Variable
 from mattermost import mm_failed_task
+from logger import logging
 
 from trackdechets_search_sirene.utils import (
     download_es_ca_pem,
@@ -27,6 +27,7 @@ es_schema = "http"
 if es_connection.schema:
     es_schema = f"{es_connection.schema}"
 
+logger = logging.getLogger(__name__)
 
 environ = {
     "FORCE_LOGGER_CONSOLE": Variable.get("FORCE_LOGGER_CONSOLE"),
@@ -40,7 +41,9 @@ environ = {
     "ELASTICSEARCH_CAPEM": Variable.get("ELASTICSEARCH_CAPEM"),
     "INDEX_CHUNK_SIZE": Variable.get("INDEX_CHUNK_SIZE"),
     "INDEX_SIRET_ONLY": Variable.get("INDEX_SIRET_ONLY"),
-    "TD_SIRENE_INDEX_MAX_CONCURRENT_REQUESTS": Variable.get("TD_SIRENE_INDEX_MAX_CONCURRENT_REQUESTS"),
+    "TD_SIRENE_INDEX_MAX_CONCURRENT_REQUESTS": Variable.get(
+        "TD_SIRENE_INDEX_MAX_CONCURRENT_REQUESTS"
+    ),
 }
 
 
@@ -99,7 +102,7 @@ def full_update_search_sirene():
             line = process.stdout.readline()
             if not line:
                 break
-            logging.info(line.rstrip().decode("utf-8"))
+            logger.debug(line.rstrip().decode("utf-8"))
 
         while process.wait():
             if process.returncode != 0:
