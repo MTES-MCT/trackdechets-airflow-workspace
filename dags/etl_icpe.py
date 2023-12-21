@@ -1,4 +1,3 @@
-import logging
 import shutil
 import tarfile
 import tempfile
@@ -12,9 +11,10 @@ from airflow.decorators import dag, task
 from airflow.models import Connection, Variable
 from sqlalchemy import create_engine
 
+from logger import logging
 from mattermost import mm_failed_task
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 
 DF_READ_CONFIG = {
@@ -104,7 +104,6 @@ def etl_icpe():
 
         res = {}
         with urllib.request.urlopen(url) as response:
-
             with tempfile.NamedTemporaryFile() as tmp_file:
                 shutil.copyfileobj(response, tmp_file)
 
@@ -132,7 +131,6 @@ def etl_icpe():
 
     @task()
     def load(tmp_dir: str):
-
         configs = [
             {"filename": "IC_etablissement.pkl", "table_name": "ic_etablissement"},
             {
@@ -178,7 +176,6 @@ def etl_icpe():
 
     @task
     def cleanup_tmp_files(tmp_dir: str):
-
         shutil.rmtree(tmp_dir)
 
     dataframes_tmp_dir = extract_data()

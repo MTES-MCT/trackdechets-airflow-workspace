@@ -1,4 +1,3 @@
-import logging
 from datetime import timedelta
 from time import sleep
 
@@ -8,8 +7,9 @@ from airflow.decorators import dag, task
 from airflow.models import Variable
 
 from mattermost import mm_failed_task
+from logger import logging
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 
 @dag(

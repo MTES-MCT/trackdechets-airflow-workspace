@@ -1,4 +1,3 @@
-import logging
 from datetime import datetime
 
 import pandas as pd
@@ -8,8 +7,9 @@ from sqlalchemy import create_engine
 
 from airflow.decorators import dag, task
 from airflow.models import Connection
+from logger import logging
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 
 @dag(

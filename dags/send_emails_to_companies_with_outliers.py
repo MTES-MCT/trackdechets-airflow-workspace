@@ -1,6 +1,5 @@
 import asyncio
 import base64
-import logging
 from datetime import datetime
 
 import aiohttp
@@ -10,8 +9,9 @@ from sqlalchemy import create_engine
 
 from airflow.decorators import dag, task
 from airflow.models import Connection, Variable
+from logger import logging
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 
 def bordereaux_list_to_base64_csv(bordereaux: list[dict]) -> str:
