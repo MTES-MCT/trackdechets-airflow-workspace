@@ -2,11 +2,11 @@ from datetime import datetime
 
 import pandas as pd
 import requests
+from logger import logging
+from mattermost import mm_failed_task
+
 from airflow.decorators import dag, task
 from airflow.models import Connection, Variable
-
-from mattermost import mm_failed_task
-from logger import logging
 
 logger = logging.getLogger(__name__)
 
@@ -48,8 +48,7 @@ def publish_companies_open_data():
 
         # Filter and drop columns
         df_company = df_company.loc[
-            (df_company["verificationStatus"] == "VERIFIED")
-            | (df_company["companyTypes"] == "{PRODUCER}"),
+            :,
             ~df_company.columns.isin(["verificationStatus", "companyTypes"]),
         ]
 
@@ -93,3 +92,6 @@ def publish_companies_open_data():
 
 
 publish_companies_open_data_dag = publish_companies_open_data()
+
+if __name__ == "__main__":
+    publish_companies_open_data_dag.test()
