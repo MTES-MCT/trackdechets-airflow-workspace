@@ -3,6 +3,7 @@ import subprocess
 import tempfile
 from datetime import datetime
 from pathlib import Path
+import threading
 
 from airflow.decorators import dag, task
 from airflow.models import Connection, Variable
@@ -13,6 +14,7 @@ from trackdechets_search_sirene.utils import (
     download_es_ca_pem,
     git_clone_trackdechets,
     npm_install_build,
+    read_output
 )
 
 es_connection = Connection.get_connection_from_secrets(
@@ -90,24 +92,23 @@ def full_update_search_sirene():
 
         tmp_dir = Path(tmp_dir)
         index_command = command
-        process = subprocess.Popen(
+        node_process = subprocess.Popen(
             index_command,
             shell=True,
             cwd=tmp_dir / TRACKDECHETS_SIRENE_SEARCH_GIT,
             env=environ,
             stdout=subprocess.PIPE,
         )
+        # Start a thread to read output
+        thread = threading.Thread(target=read_output, args=(node_process,))
+        thread.start()
 
-        while True:
-            line = process.stdout.readline()
-            if not line:
-                break
-            logger.debug(line.rstrip().decode("utf-8"))
+        while node_process.wait():
+            if node_process.returncode != 0:
+                raise Exception(node_process)
 
-        while process.wait():
-            if process.returncode != 0:
-                raise Exception(process)
-
+        # Wait for the thread to finish if needed
+        thread.join()
         return str(tmp_dir)
 
     @task
