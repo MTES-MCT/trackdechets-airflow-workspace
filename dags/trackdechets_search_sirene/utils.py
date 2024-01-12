@@ -27,7 +27,7 @@ def extract_log_level(log_string):
     pattern = r"@level@\[(.*?)\]"
 
     # Search for the pattern in the string
-    match = re.search(pattern, log_string)
+    match = re.search(pattern, log_string. re.MULTILINE | re.I)
 
     # Extract and return the match if it exists, otherwise return None
     return match.group(1) if match else None
