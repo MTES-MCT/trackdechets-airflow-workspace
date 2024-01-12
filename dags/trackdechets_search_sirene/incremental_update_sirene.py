@@ -21,7 +21,7 @@ from trackdechets_search_sirene.utils import (
     download_es_ca_pem,
     git_clone_trackdechets,
     npm_install_build,
-    read_output
+    read_output,
 )
 
 logger = logging.getLogger(__name__)
@@ -63,9 +63,14 @@ environ = {
     start_date=datetime(2023, 6, 1),
     on_failure_callback=mm_failed_task,
     params={
-        "data_start_date": Param((datetime.now()-timedelta(days=1)).strftime('%Y-%m-%dT%H:%M'), type="string"),
-        "data_end_date": Param(datetime.now().strftime('%Y-%m-%dT%H:%M'), type="string"),
-     },
+        "data_start_date": Param(
+            (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%dT%H:%M"),
+            type="string",
+        ),
+        "data_end_date": Param(
+            datetime.now().strftime("%Y-%m-%dT%H:%M"), type="string"
+        ),
+    },
 )
 def incremental_update_search_sirene():
     """
@@ -103,9 +108,7 @@ def incremental_update_search_sirene():
         )
 
     @task
-    def task_query_and_index(
-        tmp_dir, params: dict[str, Any] = None
-    ) -> str:
+    def task_query_and_index(tmp_dir, params: dict[str, Any] = None) -> str:
         """
         query INSEE Sirene api the run index
         """
@@ -113,7 +116,7 @@ def incremental_update_search_sirene():
 
         data_interval_start = params["data_start_date"]
         data_interval_end = params["data_end_date"]
-        
+
         pattern = f"{data_interval_start}%20TO%20{data_interval_end}"
         logger.info(f"INSEE API query data interval : {pattern}")
 
@@ -135,7 +138,7 @@ def incremental_update_search_sirene():
                 cwd=tmp_dir / TRACKDECHETS_SIRENE_SEARCH_GIT,
                 env=environ,
                 stdout=subprocess.PIPE,
-                text=True
+                text=True,
             )
             # Start a thread to read output
             thread = threading.Thread(target=read_output, args=(node_process,))

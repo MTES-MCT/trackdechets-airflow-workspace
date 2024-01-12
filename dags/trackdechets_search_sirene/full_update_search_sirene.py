@@ -14,7 +14,7 @@ from trackdechets_search_sirene.utils import (
     download_es_ca_pem,
     git_clone_trackdechets,
     npm_install_build,
-    read_output
+    read_output,
 )
 
 es_connection = Connection.get_connection_from_secrets(

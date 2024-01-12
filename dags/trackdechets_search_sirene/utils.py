@@ -5,39 +5,45 @@ import re
 
 logger = logging.getLogger(__name__)
 
+
 def log_message(extracted_level, message):
     # Map the extracted level to the logging function
     log_level_mapper = {
-        'debug': logger.debug,
-        'info': logger.info,
-        'warning': logger.warning,
-        'error': logger.error,
-        'critical': logger.critical
+        "debug": logger.debug,
+        "info": logger.info,
+        "warning": logger.warning,
+        "error": logger.error,
+        "critical": logger.critical,
     }
 
     # Get the logging function based on the extracted level
-    log_func = log_level_mapper.get(extracted_level, logging.info)  # Default to 'info' if level is not recognized
+    log_func = log_level_mapper.get(
+        extracted_level, logging.info
+    )  # Default to 'info' if level is not recognized
 
     # Call the logging function with the message
     log_func(message)
 
+
 def extract_log_level(log_string):
-    # Define the pattern to search for. This pattern looks for anything between '[' and ']' 
+    # Define the pattern to search for. This pattern looks for anything between '[' and ']'
     # following the '@level@' portion of your string.
     pattern = r"@level@\[(.*?)\]"
 
     # Search for the pattern in the string
-    match = re.search(pattern, log_string. re.MULTILINE | re.I)
+    match = re.search(pattern, log_string.re.MULTILINE | re.I)
 
     # Extract and return the match if it exists, otherwise return None
     return match.group(1) if match else None
 
+
 def read_output(process):
-    for line in iter(process.stdout.readline, ''):
+    for line in iter(process.stdout.readline, ""):
         log_line = line.rstrip()
         # match "@level@***" to get the level of log
         level = extract_log_level(log_line)
         log_message(level, log_line)
+
 
 def download_es_ca_pem(
     tmp_dir, elasticsearch_capem, trackdechets_sirene_search_git
@@ -57,7 +63,7 @@ def download_es_ca_pem(
         logger.info(completed_process)
     else:
         # Incase the certificate is already stored in the elasticsearch_capem variable
-        (tmp_dir/"ca.pem").write_text(elasticsearch_capem)
+        (tmp_dir / "ca.pem").write_text(elasticsearch_capem)
     return str(tmp_dir)
 
 

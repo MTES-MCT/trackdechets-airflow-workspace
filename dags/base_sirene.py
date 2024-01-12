@@ -20,8 +20,7 @@ from mattermost import mm_failed_task
     on_failure_callback=mm_failed_task,
 )
 def base_sirene_etl():
-    """DAG qui met à jour la base SIRENE dans le Data Warehouse Trackdéchets
-    """
+    """DAG qui met à jour la base SIRENE dans le Data Warehouse Trackdéchets"""
 
     @task
     def extract_stock_etablissement() -> str:
