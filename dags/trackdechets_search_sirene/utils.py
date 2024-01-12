@@ -33,7 +33,7 @@ def extract_log_level(log_bytes):
     pattern = r"@level@\[(.*?)\]"
 
     # Search for the pattern in the string
-    match = re.search(pattern, log_string.decode("utf-8"), re.MULTILINE | re.I)
+    match = re.search(pattern, log_string, re.MULTILINE | re.I)
 
     # Extract and return the match if it exists, otherwise return None
     return match.group(1).lower() if match else None
