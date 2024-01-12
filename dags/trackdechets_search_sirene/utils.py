@@ -1,9 +1,7 @@
+import logging
 import re
 import subprocess
 from pathlib import Path
-
-from logger import logging
-import re
 
 logger = logging.getLogger(__name__)
 
