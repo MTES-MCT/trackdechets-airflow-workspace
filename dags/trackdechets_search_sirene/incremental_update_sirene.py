@@ -2,9 +2,10 @@ import logging
 import shutil
 import subprocess
 import tempfile
-from datetime import datetime
-from datetime import timedelta
+from datetime import datetime, timedelta
 from pathlib import Path
+import threading
+from typing import Any
 
 from pynsee.sirene import search_sirene
 from pynsee.utils.init_conn import init_conn
@@ -12,7 +13,7 @@ from pynsee.utils.init_conn import init_conn
 from requests.exceptions import RequestException
 
 from airflow.decorators import dag, task
-from airflow.models import Connection, Variable
+from airflow.models import Connection, Variable, Param
 from mattermost import mm_failed_task
 from logger import logging
 
@@ -20,6 +21,7 @@ from trackdechets_search_sirene.utils import (
     download_es_ca_pem,
     git_clone_trackdechets,
     npm_install_build,
+    read_output,
 )
 
 logger = logging.getLogger(__name__)
@@ -57,9 +59,18 @@ environ = {
 
 @dag(
     schedule_interval="0 4 * * *",
-    catchup=True,
+    catchup=False,
     start_date=datetime(2023, 6, 1),
     on_failure_callback=mm_failed_task,
+    params={
+        "data_start_date": Param(
+            (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%dT%H:%M"),
+            type="string",
+        ),
+        "data_end_date": Param(
+            datetime.now().strftime("%Y-%m-%dT%H:%M"), type="string"
+        ),
+    },
 )
 def incremental_update_search_sirene():
     """
@@ -97,15 +108,16 @@ def incremental_update_search_sirene():
         )
 
     @task
-    def task_query_and_index(
-        tmp_dir, data_interval_start=None, data_interval_end=None
-    ) -> str:
+    def task_query_and_index(tmp_dir, params: dict[str, Any] = None) -> str:
         """
         query INSEE Sirene api the run index
         """
         tmp_dir = Path(tmp_dir)
 
-        pattern = f"{data_interval_start.strftime('%Y-%m-%dT%H:%M')}%20TO%20{data_interval_end.strftime('%Y-%m-%dT%H:%M')}"
+        data_interval_start = params["data_start_date"]
+        data_interval_end = params["data_end_date"]
+
+        pattern = f"{data_interval_start}%20TO%20{data_interval_end}"
         logger.info(f"INSEE API query data interval : {pattern}")
 
         try:
@@ -120,25 +132,26 @@ def incremental_update_search_sirene():
             df.to_csv(path_or_buf=path_or_buf)
 
             index_command = f"npm run index:siret:csv -- {path_or_buf}"
-            process = subprocess.Popen(
+            node_process = subprocess.Popen(
                 index_command,
                 shell=True,
                 cwd=tmp_dir / TRACKDECHETS_SIRENE_SEARCH_GIT,
                 env=environ,
                 stdout=subprocess.PIPE,
+                text=True,
             )
+            # Start a thread to read output
+            thread = threading.Thread(target=read_output, args=(node_process,))
+            thread.start()
 
-            while True:
-                line = process.stdout.readline()
-                if not line:
-                    break
-                logger.debug(line.rstrip().decode("utf-8"))
+            while node_process.wait():
+                if node_process.returncode != 0:
+                    raise Exception(node_process)
 
-            while process.wait():
-                if process.returncode != 0:
-                    raise Exception(process)
-
+            # Wait for the thread to finish if needed
+            thread.join()
             return str(tmp_dir)
+
         except RequestException as error:
             if error.errno == 404:
                 print("nothing")
@@ -167,3 +180,6 @@ def incremental_update_search_sirene():
 
 
 trackdechets_search_sirene_dag = incremental_update_search_sirene()
+
+if __name__ == "__main__":
+    trackdechets_search_sirene_dag.test()
