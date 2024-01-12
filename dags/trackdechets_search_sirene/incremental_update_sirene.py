@@ -2,9 +2,10 @@ import logging
 import shutil
 import subprocess
 import tempfile
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 import threading
+from typing import Any
 
 from pynsee.sirene import search_sirene
 from pynsee.utils.init_conn import init_conn
@@ -12,7 +13,7 @@ from pynsee.utils.init_conn import init_conn
 from requests.exceptions import RequestException
 
 from airflow.decorators import dag, task
-from airflow.models import Connection, Variable
+from airflow.models import Connection, Variable, Param
 from mattermost import mm_failed_task
 from logger import logging
 
@@ -58,9 +59,13 @@ environ = {
 
 @dag(
     schedule_interval="0 4 * * *",
-    catchup=True,
+    catchup=False,
     start_date=datetime(2023, 6, 1),
     on_failure_callback=mm_failed_task,
+    params={
+        "data_start_date": Param((datetime.now()-timedelta(days=1)).strftime('%Y-%m-%dT%H:%M'), type="string"),
+        "data_end_date": Param(datetime.now().strftime('%Y-%m-%dT%H:%M'), type="string"),
+     },
 )
 def incremental_update_search_sirene():
     """
@@ -99,14 +104,17 @@ def incremental_update_search_sirene():
 
     @task
     def task_query_and_index(
-        tmp_dir, data_interval_start: datetime, data_interval_end: datetime
+        tmp_dir, params: dict[str, Any] = None
     ) -> str:
         """
         query INSEE Sirene api the run index
         """
         tmp_dir = Path(tmp_dir)
 
-        pattern = f"{data_interval_start.strftime('%Y-%m-%dT%H:%M')}%20TO%20{data_interval_end.strftime('%Y-%m-%dT%H:%M')}"
+        data_interval_start = params["data_start_date"]
+        data_interval_end = params["data_end_date"]
+        
+        pattern = f"{data_interval_start}%20TO%20{data_interval_end}"
         logger.info(f"INSEE API query data interval : {pattern}")
 
         try:
@@ -169,3 +177,6 @@ def incremental_update_search_sirene():
 
 
 trackdechets_search_sirene_dag = incremental_update_search_sirene()
+
+if __name__ == "__main__":
+    trackdechets_search_sirene_dag.test()

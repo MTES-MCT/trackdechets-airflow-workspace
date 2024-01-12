@@ -44,15 +44,20 @@ def download_es_ca_pem(
 ) -> str:
     """Download certificate needed for ElasticSearch connection."""
     tmp_dir = Path(tmp_dir)
-    curl = f"curl -o es.cert {elasticsearch_capem}"
-    completed_process = subprocess.run(
-        curl,
-        check=True,
-        capture_output=True,
-        shell=True,
-        cwd=tmp_dir / trackdechets_sirene_search_git / "dist" / "common",
-    )
-    logger.info(completed_process)
+
+    if "https" in elasticsearch_capem:
+        curl = f"curl -o es.cert {elasticsearch_capem}"
+        completed_process = subprocess.run(
+            curl,
+            check=True,
+            capture_output=True,
+            shell=True,
+            cwd=tmp_dir / trackdechets_sirene_search_git / "dist" / "common",
+        )
+        logger.info(completed_process)
+    else:
+        # Incase the certificate is already stored in the elasticsearch_capem variable
+        (tmp_dir/"ca.pem").write_text(elasticsearch_capem)
     return str(tmp_dir)
 
 
