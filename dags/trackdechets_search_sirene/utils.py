@@ -25,7 +25,9 @@ def log_message(extracted_level, message):
     log_func(message)
 
 
-def extract_log_level(log_string):
+def extract_log_level(log_bytes):
+    # Decode the bytes-like object to a string
+    log_string = log_bytes.decode('utf-8')
     # Define the pattern to search for. This pattern looks for anything between '[' and ']'
     # following the '@level@' portion of your string.
     pattern = r"@level@\[(.*?)\]"
@@ -34,7 +36,7 @@ def extract_log_level(log_string):
     match = re.search(pattern, log_string, re.MULTILINE | re.I)
 
     # Extract and return the match if it exists, otherwise return None
-    return match.group(1) if match else None
+    return match.group(1).lower() if match else None
 
 
 def read_output(process):
