@@ -4,6 +4,9 @@ from logger import logging
 
 logger = logging.getLogger(__name__)
 
+def read_output(process):
+    for line in iter(process.stdout.readline, ''):
+        logger.info(line.rstrip())
 
 def download_es_ca_pem(
     tmp_dir, elasticsearch_capem, trackdechets_sirene_search_git
