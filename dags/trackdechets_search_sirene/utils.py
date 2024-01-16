@@ -42,8 +42,14 @@ def extract_log_level(log_bytes):
 def read_output(process):
     for line in iter(process.stdout.readline, ""):
         log_line = line.rstrip()
+        if len(log_line) == 0:
+            continue
+
         # match "@level@***" to get the level of log
         level = extract_log_level(log_line)
+        if level is None:
+            level = "info"
+
         log_message(level, log_line)
 
 
