@@ -39,18 +39,20 @@ def extract_log_level(log_bytes):
     return match.group(1).lower() if match else None
 
 
-def read_output(process):
-    for line in iter(process.stdout.readline, ""):
-        log_line = line.rstrip()
-        if len(log_line) == 0:
-            continue
+def read_output(line):
+    if not line:
+        return
 
-        # match "@level@***" to get the level of log
-        level = extract_log_level(log_line)
-        if level is None:
-            level = "info"
+    log_line = line.rstrip()
+    if len(log_line) == 0:
+        return
 
-        log_message(level, log_line)
+    # match "@level@***" to get the level of log
+    level = extract_log_level(log_line)
+    if level is None:
+        level = "info"
+
+    log_message(level, log_line)
 
 
 def download_es_ca_pem(
