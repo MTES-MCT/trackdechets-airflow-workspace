@@ -3,7 +3,6 @@ import subprocess
 import tempfile
 from datetime import datetime
 from pathlib import Path
-import threading
 
 from airflow.decorators import dag, task
 from airflow.models import Connection, Variable
@@ -99,16 +98,17 @@ def full_update_search_sirene():
             env=environ,
             stdout=subprocess.PIPE,
         )
-        # Start a thread to read output
-        thread = threading.Thread(target=read_output, args=(node_process,))
-        thread.start()
+        # read the output
+        while True:
+            line = node_process.stdout.readline()
+            if not line:
+                break
+            read_output(line)
 
         while node_process.wait():
             if node_process.returncode != 0:
                 raise Exception(node_process)
 
-        # Wait for the thread to finish if needed
-        thread.join()
         return str(tmp_dir)
 
     @task
