@@ -39,6 +39,7 @@ environ = {
     "DD_APP_NAME": Variable.get("DD_APP_NAME"),
     "DD_ENV": Variable.get("DD_ENV"),
     "NODE_ENV": Variable.get("NODE_ENV"),
+    "NODE_OPTIONS": Variable.get("NODE_OPTIONS"),
     "ELASTICSEARCH_CAPEM": Variable.get("ELASTICSEARCH_CAPEM"),
     "INDEX_CHUNK_SIZE": Variable.get("INDEX_CHUNK_SIZE"),
     "INDEX_SIRET_ONLY": Variable.get("INDEX_SIRET_ONLY"),
