@@ -6,8 +6,9 @@ from pathlib import Path
 
 from airflow.decorators import dag, task
 from airflow.models import Connection, Variable
-from mattermost import mm_failed_task
+from airflow.utils.trigger_rule import TriggerRule
 from logger import logging
+from mattermost import mm_failed_task
 
 from trackdechets_search_sirene.utils import (
     download_es_ca_pem,
@@ -112,7 +113,7 @@ def full_update_search_sirene():
 
         return str(tmp_dir)
 
-    @task
+    @task(trigger_rule=TriggerRule.ALL_DONE)
     def task_cleanup_tmp_files(tmp_dir: str):
         """Clean DAG's artifacts"""
         shutil.rmtree(tmp_dir)

@@ -6,15 +6,14 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any
 
+from airflow.decorators import dag, task
+from airflow.models import Connection, Param, Variable
+from airflow.utils.trigger_rule import TriggerRule
+from logger import logging
+from mattermost import mm_failed_task
 from pynsee.sirene import search_sirene
 from pynsee.utils.init_conn import init_conn
-
 from requests.exceptions import RequestException
-
-from airflow.decorators import dag, task
-from airflow.models import Connection, Variable, Param
-from mattermost import mm_failed_task
-from logger import logging
 
 from trackdechets_search_sirene.utils import (
     download_es_ca_pem,
@@ -161,7 +160,7 @@ def incremental_update_search_sirene():
 
         return str(tmp_dir)
 
-    @task
+    @task(trigger_rule=TriggerRule.ALL_DONE)
     def task_cleanup_tmp_files(tmp_dir: str):
         """Clean DAG's artifacts"""
         shutil.rmtree(tmp_dir)

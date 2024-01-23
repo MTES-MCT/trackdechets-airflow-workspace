@@ -1,16 +1,16 @@
-from asyncio.log import logger
 import shutil
+import subprocess
 import tempfile
 import urllib
+from asyncio.log import logger
 from datetime import datetime
 from pathlib import Path
-import subprocess
 
 from airflow.decorators import dag, task
 from airflow.models import Connection, Variable
-from sqlalchemy import create_engine
-
+from airflow.utils.trigger_rule import TriggerRule
 from mattermost import mm_failed_task
+from sqlalchemy import create_engine
 
 
 @dag(
@@ -35,7 +35,6 @@ def base_sirene_etl():
 
     @task
     def update_table(tmp_dir: str):
-
         tmp_dir = Path(tmp_dir)
 
         airflow_con = Connection.get_connection_from_secrets("td_datawarehouse")
@@ -105,9 +104,8 @@ TRUNCATE TABLE raw_zone_insee.stock_etablissement;
         )
         logger.info(completed_process)
 
-    @task
+    @task(trigger_rule=TriggerRule.ALL_DONE)
     def cleanup_tmp_files(tmp_dir: str):
-
         shutil.rmtree(tmp_dir)
 
     tmp_dir = extract_stock_etablissement()
