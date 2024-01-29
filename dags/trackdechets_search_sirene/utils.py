@@ -24,10 +24,23 @@ def log_message(extracted_level, message):
     # Call the logging function with the message
     log_func(message)
 
+def ensure_str(input_data):
+    """
+    Avoid type errors
+    """
+    if isinstance(input_data, bytes):
+        # Decode bytes to a string using utf-8 encoding
+        return input_data.decode('utf-8')
+    elif isinstance(input_data, str):
+        # Input is already a string, return as is
+        return input_data
+    else:
+        # Handle other types if necessary, or return empty
+        return ""
 
 def extract_log_level(log_bytes):
     # Decode the bytes-like object to a string
-    log_string = log_bytes.decode('utf-8')
+    log_string = ensure_str(log_bytes)
     # Define the pattern to search for. This pattern looks for anything between '[' and ']'
     # following the '@level@' portion of your string.
     pattern = r"@level@\[(.*?)\]"
