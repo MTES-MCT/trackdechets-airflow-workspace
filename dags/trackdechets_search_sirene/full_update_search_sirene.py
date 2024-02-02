@@ -58,6 +58,7 @@ environ = {
 
 # Constant pointing to the node git indexation repo
 TRACKDECHETS_SIRENE_SEARCH_GIT = Variable.get("TRACKDECHETS_SIRENE_SEARCH_GIT")
+TRACKDECHETS_SIRENE_SEARCH_GIT_BRANCH = Variable.get("TRACKDECHETS_SIRENE_SEARCH_GIT_BRANCH", "main")
 
 
 @dag(
@@ -72,7 +73,9 @@ def full_update_search_sirene():
     @task
     def task_git_clone_trackdechets() -> str:
         tmp_dir = Path(tempfile.mkdtemp(prefix="trackdechets_search_sirene"))
-        return git_clone_trackdechets(tmp_dir, TRACKDECHETS_SIRENE_SEARCH_GIT)
+        return git_clone_trackdechets(
+            tmp_dir, TRACKDECHETS_SIRENE_SEARCH_GIT, TRACKDECHETS_SIRENE_SEARCH_GIT_BRANCH
+        )
 
     @task
     def task_npm_install_build(tmp_dir) -> str:
