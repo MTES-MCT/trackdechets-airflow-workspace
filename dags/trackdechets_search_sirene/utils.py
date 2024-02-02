@@ -90,10 +90,11 @@ def download_es_ca_pem(
     return str(tmp_dir)
 
 
-def git_clone_trackdechets(tmp_dir, trackdechets_sirene_search_git) -> str:
+def git_clone_trackdechets(tmp_dir, trackdechets_sirene_search_git, branch_name) -> str:
     clone_command = (
-        f"git clone https://github.com/MTES-MCT/{trackdechets_sirene_search_git}.git"
+        f"git clone https://github.com/MTES-MCT/{trackdechets_sirene_search_git}.git --branch {branch_name}"
     )
+
     completed_process = subprocess.run(
         clone_command, check=True, capture_output=True, shell=True, cwd=tmp_dir
     )
