@@ -26,6 +26,7 @@ logger = logging.getLogger(__name__)
 
 # Constant pointing to the node git indexation repo
 TRACKDECHETS_SIRENE_SEARCH_GIT = Variable.get("TRACKDECHETS_SIRENE_SEARCH_GIT")
+TRACKDECHETS_SIRENE_SEARCH_GIT_BRANCH = Variable.get("TRACKDECHETS_SIRENE_SEARCH_GIT_BRANCH", "main")
 
 es_connection = Connection.get_connection_from_secrets(
     "trackdechets_search_sirene_elasticsearch_url"
@@ -90,7 +91,9 @@ def incremental_update_search_sirene():
 
     @task
     def task_git_clone_trackdechets(tmp_dir) -> str:
-        return git_clone_trackdechets(tmp_dir, TRACKDECHETS_SIRENE_SEARCH_GIT)
+        return git_clone_trackdechets(
+            tmp_dir, TRACKDECHETS_SIRENE_SEARCH_GIT, TRACKDECHETS_SIRENE_SEARCH_GIT_BRANCH
+        )
 
     @task
     def task_npm_install_build(tmp_dir) -> str:
