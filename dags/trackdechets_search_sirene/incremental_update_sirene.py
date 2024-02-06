@@ -126,7 +126,7 @@ def incremental_update_search_sirene():
                 variable=["dateDernierTraitementEtablissement"],
                 pattern=[f"[{pattern}]"],
                 kind="siret",
-                number=50_000,
+                number=50_000_000,
             )
             # print the items
             path_or_buf = tmp_dir / f"{pattern}.csv"
