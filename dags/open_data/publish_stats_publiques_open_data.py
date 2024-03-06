@@ -59,6 +59,18 @@ DATA_CONFIG = [
         "title": "Statistiques annuelles de création de bordereaux par type de bordereaux",
         "rid": "8c0d4554-98d8-4c03-a931-8e2baeb70f1f",
     },
+    {
+        "filename": "quantite_produite_par_an_et_code_naf.csv",
+        "table_name": "refined_zone_stats_publiques.annual_waste_produced_by_naf",
+        "title": "Statistiques annuelles de la quantité de déchets produits par code NAF",
+        "rid": "2d2c2765-82d8-426f-a543-e14b08b06798",
+    },
+    {
+        "filename": "comptes_etablissements_par_an_et_code_naf.csv",
+        "table_name": "refined_zone_stats_publiques.annual_company_accounts_created_by_naf",
+        "title": "Statistiques annuelles des créations de compte sur l'application Trackdéchets par code NAF",
+        "rid": "4780d501-01e2-4262-9f87-9c77b404fb0a",
+    },
 ]
 
 
