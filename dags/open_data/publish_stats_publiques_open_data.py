@@ -108,10 +108,13 @@ def publish_stats_publiques_open_data():
             if "annual" in table_name:
                 sql = f"SELECT * from {table_name} WHERE annee>=2022"
 
+            logger.info("Querying the datawarehouse with the following query : %s", sql)
             df = pd.read_sql_query(
                 sql=sql,
                 con=sql_engine,
             )
+
+            logger.info("Get following df : %s", df.describe())
 
             logger.info("Uploading file : %s", filename)
             resp = requests.post(
