@@ -72,7 +72,7 @@ def base_sirene_etl():
         shutil.rmtree(tmp_dir)
 
     tmp_dir = extract_stock_etablissement()
-    update_table(tmp_dir) >> cleanup_tmp_files
+    update_table(tmp_dir) >> cleanup_tmp_files(tmp_dir)
 
 
 base_sirene_etl_dag = base_sirene_etl()
