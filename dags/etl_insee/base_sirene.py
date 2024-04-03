@@ -50,7 +50,7 @@ def base_sirene_etl():
         with db.connection_context():
             if params["force_recreate_table"]:
                 logger.info("Force re-creation of table.")
-                StockEtablissement.drop_table(safe=True)
+                StockEtablissement.drop_table(safe=True, cascade=True)
                 db.create_tables([StockEtablissement])
 
             if not StockEtablissement.table_exists():
