@@ -60,19 +60,19 @@ def base_sirene_etl():
             logger.info("Truncating the table.")
             StockEtablissement.truncate_table()
 
-        copy_command = f"psql {sql_uri} -c \"\\copy raw_zone_insee.stock_etablissement from '{str(tmp_dir/'StockEtablissementS4F3_utf8.csv')}' WITH (FORMAT csv, HEADER true);\""
+        copy_command = f"psql {sql_uri} -c \"\\copy raw_zone_insee.stock_etablissement from '{str(tmp_dir/'StockEtablissement_utf8.csv')}' WITH (FORMAT csv, HEADER true);\""
         logger.info("Beginning the insertion of the data.")
         completed_process = subprocess.run(
             copy_command, check=True, capture_output=True, shell=True
         )
         logger.info(completed_process)
 
-    # @task(trigger_rule=TriggerRule.ALL_DONE)
-    # def cleanup_tmp_files(tmp_dir: str):
-    #     shutil.rmtree(tmp_dir)
+    @task(trigger_rule=TriggerRule.ALL_DONE)
+    def cleanup_tmp_files(tmp_dir: str):
+        shutil.rmtree(tmp_dir)
 
     tmp_dir = extract_stock_etablissement()
-    update_table(tmp_dir)
+    update_table(tmp_dir) >> cleanup_tmp_files
 
 
 base_sirene_etl_dag = base_sirene_etl()
