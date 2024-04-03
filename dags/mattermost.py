@@ -4,13 +4,16 @@ import urllib
 
 from airflow.models import Variable
 
+
 # adapted from https://github.com/mattermost/mattermost-data-warehouse/blob/master/dags/airflow_utils.py
 def mm_failed_task(context):
     """
     Function to be used as a callable for on_failure_callback.
     Send a Mattermost alert.
     """
-
+    current_env = Variable.get("AIRFLOW_ENV", "dev")
+    if current_env != "prod":
+        return
     mm_webhook_url = Variable.get("MATTERMOST_WEBHOOK")
     base_url = Variable.get("AIRFLOW_BASE_URL")
     if mm_webhook_url is None:

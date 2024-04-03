@@ -140,3 +140,6 @@ def full_update_search_sirene():
 
 
 trackdechets_search_sirene_dag = full_update_search_sirene()
+
+if __name__ == "__main__":
+    trackdechets_search_sirene_dag.test()
