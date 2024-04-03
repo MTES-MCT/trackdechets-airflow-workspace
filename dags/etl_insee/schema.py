@@ -20,10 +20,11 @@ class StockEtablissement(Model):
         database = db
         table_name = "stock_etablissement"
         schema = "raw_zone_insee"
+        primary_key = False
 
-    siren = CharField(null=True)
-    nic = CharField(null=True)
-    siret = CharField(unique=True, null=True)
+    siren = CharField()
+    nic = CharField()
+    siret = CharField(unique=True, primary_key=True)
     statutDiffusionEtablissement = CharField(null=True)
     dateCreationEtablissement = DateField(null=True)
     trancheEffectifsEtablissement = CharField(null=True)
