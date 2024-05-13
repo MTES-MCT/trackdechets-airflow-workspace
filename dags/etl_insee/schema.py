@@ -24,7 +24,7 @@ class StockEtablissement(Model):
 
     siren = CharField()
     nic = CharField()
-    siret = CharField(unique=True, primary_key=True)
+    siret = CharField(unique=True)
     statutDiffusionEtablissement = CharField(null=True)
     dateCreationEtablissement = DateField(null=True)
     trancheEffectifsEtablissement = CharField(null=True)

@@ -65,7 +65,8 @@ def base_sirene_etl():
         completed_process = subprocess.run(
             copy_command, check=True, capture_output=True, shell=True
         )
-        logger.info(completed_process)
+        logger.info(completed_process.stdout)
+        logger.info(completed_process.stderr)
 
     @task(trigger_rule=TriggerRule.ALL_DONE)
     def cleanup_tmp_files(tmp_dir: str):
