@@ -34,9 +34,14 @@ def publish_companies_open_data():
         )
 
         df_company = pd.read_sql_query(
-            """
-        SELECT "Company"."siret", cast("Company"."createdAt" as date) as date_inscription,
-        "Company"."companyTypes", "Company"."name" as nom, "Company"."verificationStatus"
+        """
+        SELECT 
+            "Company"."siret", 
+            cast("Company"."createdAt" as date) as date_inscription,
+            cast("Company"."createdAt" as date) as date_derniere_mise_a_jour,
+            "Company"."companyTypes", 
+            "Company"."name" as nom, 
+            "Company"."verificationStatus"
         FROM "default$default"."Company"
         """,
             con=sql_engine,
