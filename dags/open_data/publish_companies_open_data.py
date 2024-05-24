@@ -38,7 +38,7 @@ def publish_companies_open_data():
         SELECT 
             "Company"."siret", 
             cast("Company"."createdAt" as date) as date_inscription,
-            cast("Company"."createdAt" as date) as date_derniere_mise_a_jour,
+            cast("Company"."updatedAt" as date) as date_derniere_mise_a_jour,
             "Company"."companyTypes", 
             "Company"."name" as nom, 
             "Company"."verificationStatus"
