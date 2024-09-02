@@ -53,6 +53,7 @@ def base_sirene_etl():
                 StockEtablissement.drop_table(safe=True, cascade=True)
                 db.create_tables([StockEtablissement])
                 StockEtablissement.add_index(StockEtablissement.codeCommuneEtablissement,safe=True)
+                StockEtablissement.add_index(StockEtablissement.codeCommune2Etablissement,safe=True)
 
             if not StockEtablissement.table_exists():
                 logger.info("Table does not exists, creation of the table.")
