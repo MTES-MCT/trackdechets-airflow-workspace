@@ -2,31 +2,35 @@ import logging
 import shutil
 import subprocess
 import tempfile
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from airflow.decorators import dag, task
-from airflow.models import Connection, Param, Variable
-from airflow.utils.trigger_rule import TriggerRule
+import pandas as pd
+import pendulum
 from logger import logging
 from mattermost import mm_failed_task
-from pynsee.sirene import search_sirene
-from pynsee.utils.init_conn import init_conn
 from requests.exceptions import RequestException
-
 from trackdechets_search_sirene.utils import (
     download_es_ca_pem,
+    extract_companies,
+    format_extracted_companies,
     git_clone_trackdechets,
     npm_install_build,
     read_output,
 )
 
+from airflow.decorators import dag, task
+from airflow.models import Connection, Variable
+from airflow.utils.trigger_rule import TriggerRule
+
 logger = logging.getLogger(__name__)
 
 # Constant pointing to the node git indexation repo
 TRACKDECHETS_SIRENE_SEARCH_GIT = Variable.get("TRACKDECHETS_SIRENE_SEARCH_GIT")
-TRACKDECHETS_SIRENE_SEARCH_GIT_BRANCH = Variable.get("TRACKDECHETS_SIRENE_SEARCH_GIT_BRANCH", "main")
+TRACKDECHETS_SIRENE_SEARCH_GIT_BRANCH = Variable.get(
+    "TRACKDECHETS_SIRENE_SEARCH_GIT_BRANCH", "main"
+)
 
 es_connection = Connection.get_connection_from_secrets(
     "trackdechets_search_sirene_elasticsearch_url"
@@ -50,26 +54,19 @@ environ = {
     "DD_APP_NAME": Variable.get("DD_APP_NAME"),
     "DD_ENV": Variable.get("DD_ENV"),
     "NODE_ENV": Variable.get("NODE_ENV"),
-    "INSEE_KEY": Variable.get("INSEE_KEY"),
-    "INSEE_SECRET": Variable.get("INSEE_SECRET"),
     "ELASTICSEARCH_CAPEM": Variable.get("ELASTICSEARCH_CAPEM"),
+    "INSEE_CLIENT_ID": Variable.get("INSEE_CLIENT_ID"),
+    "INSEE_CLIENT_SECRET": Variable.get("INSEE_CLIENT_SECRET"),
+    "INSEE_USERNAME": Variable.get("INSEE_USERNAME"),
+    "INSEE_PASSWORD": Variable.get("INSEE_PASSWORD"),
 }
 
 
 @dag(
     schedule_interval="0 4 * * *",
-    catchup=False,
-    start_date=datetime(2023, 6, 1),
+    catchup=True,
+    start_date=datetime(2024, 10, 19),
     on_failure_callback=mm_failed_task,
-    params={
-        "data_start_date": Param(
-            (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%dT%H:%M"),
-            type="string",
-        ),
-        "data_end_date": Param(
-            datetime.now().strftime("%Y-%m-%dT%H:%M"), type="string"
-        ),
-    },
 )
 def incremental_update_search_sirene():
     """
@@ -79,20 +76,19 @@ def incremental_update_search_sirene():
     """
 
     @task
-    def task_init_connection() -> str:
+    def create_tmp_dir() -> str:
         """
-        generate and cache an access token
-        (only valid for a period of time)
+        Generate a temporatory directory for artifacts.
         """
-        init_conn(insee_key=environ["INSEE_KEY"], insee_secret=environ["INSEE_SECRET"])
-
         output_path = Path(tempfile.mkdtemp(prefix="trackdechets_update_daily_sirene"))
         return str(output_path)
 
     @task
     def task_git_clone_trackdechets(tmp_dir) -> str:
         return git_clone_trackdechets(
-            tmp_dir, TRACKDECHETS_SIRENE_SEARCH_GIT, TRACKDECHETS_SIRENE_SEARCH_GIT_BRANCH
+            tmp_dir,
+            TRACKDECHETS_SIRENE_SEARCH_GIT,
+            TRACKDECHETS_SIRENE_SEARCH_GIT_BRANCH,
         )
 
     @task
@@ -109,27 +105,35 @@ def incremental_update_search_sirene():
         )
 
     @task
-    def task_query_and_index(tmp_dir, params: dict[str, Any] = None) -> str:
+    def task_query_and_index(
+        tmp_dir,
+        data_interval_start: pendulum.DateTime | None = None,
+        data_interval_end: pendulum.DateTime | None = None,
+    ) -> str:
         """
         query INSEE Sirene api the run index
         """
         tmp_dir = Path(tmp_dir)
 
-        data_interval_start = params["data_start_date"]
-        data_interval_end = params["data_end_date"]
-
-        pattern = f"{data_interval_start}%20TO%20{data_interval_end}"
-        logger.info(f"INSEE API query data interval : {pattern}")
+        logger.info(
+            f"INSEE API query data interval : {data_interval_start:%Y-%m-%d} to {data_interval_end:%Y-%m-%d}",
+        )
 
         try:
-            df = search_sirene(
-                variable=["dateDernierTraitementEtablissement"],
-                pattern=[f"[{pattern}]"],
-                kind="siret",
-                number=50_000_000,
+            companies = extract_companies(
+                client_id=environ["INSEE_CLIENT_ID"],
+                client_secret=environ["INSEE_CLIENT_SECRET"],
+                username=environ["INSEE_USERNAME"],
+                password=environ["INSEE_PASSWORD"],
+                date_start=data_interval_start,
+                date_end=data_interval_end,
             )
+            companies_formatted = format_extracted_companies(companies)
+            df = pd.DataFrame.from_dict(companies_formatted)
             # print the items
-            path_or_buf = tmp_dir / f"{pattern}.csv"
+            path_or_buf = (
+                tmp_dir / f"{data_interval_start:%Y%m%d}-{data_interval_end:%Y%m%d}.csv"
+            )
             df.to_csv(path_or_buf=path_or_buf)
 
             index_command = f"npm run index:siret:csv -- {path_or_buf}"
@@ -171,7 +175,7 @@ def incremental_update_search_sirene():
     """
     Dag workflow
     """
-    tmp_dir = task_init_connection()
+    tmp_dir = create_tmp_dir()
     (
         task_git_clone_trackdechets(tmp_dir)
         >> task_npm_install_build(tmp_dir)
