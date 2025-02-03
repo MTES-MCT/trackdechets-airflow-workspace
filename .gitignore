@@ -5,3 +5,4 @@ __pycache__
 logs/dag_processor_manager/**
 logs/scheduler/**
 logs/dag_id=*/**
+.env

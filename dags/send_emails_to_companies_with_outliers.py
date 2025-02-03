@@ -41,9 +41,7 @@ def bordereaux_list_to_base64_csv(bordereaux: list[dict]) -> str:
     return bordereaux_csv_base64
 
 
-async def send_email_async(
-    session: aiohttp.ClientSession, url: str, body: dict
-) -> dict:
+async def send_email_async(client: aiohttp.ClientSession, url: str, body: dict) -> dict:
     async with session.post(url, json=body) as response:
         logger.info(
             "Sending e-mail(s) to %s, email adresses : % s",

@@ -1,9 +1,9 @@
 import shutil
 import subprocess
 import tempfile
+import logging
 from typing import Any
 import urllib
-from asyncio.log import logger
 from datetime import datetime
 from pathlib import Path
 
@@ -13,6 +13,8 @@ from airflow.utils.trigger_rule import TriggerRule
 
 from etl_insee.schema import StockEtablissement, db
 from mattermost import mm_failed_task
+
+logger = logging.basicConfig()
 
 
 @dag(
@@ -52,8 +54,12 @@ def base_sirene_etl():
                 logger.info("Force re-creation of table.")
                 StockEtablissement.drop_table(safe=True, cascade=True)
                 db.create_tables([StockEtablissement])
-                StockEtablissement.add_index(StockEtablissement.codeCommuneEtablissement,safe=True)
-                StockEtablissement.add_index(StockEtablissement.codeCommune2Etablissement,safe=True)
+                StockEtablissement.add_index(
+                    StockEtablissement.codeCommuneEtablissement, safe=True
+                )
+                StockEtablissement.add_index(
+                    StockEtablissement.codeCommune2Etablissement, safe=True
+                )
 
             if not StockEtablissement.table_exists():
                 logger.info("Table does not exists, creation of the table.")
